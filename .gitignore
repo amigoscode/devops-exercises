@@ -1,0 +1,5 @@
+.vimeo_token
+.transcripts/
+sandbox/
+.DS_Store
+scripts/

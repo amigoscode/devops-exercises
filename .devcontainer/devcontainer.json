@@ -1,0 +1,15 @@
+{
+  "name": "Amigoscode DevOps Exercises",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {}
+  },
+  "onCreateCommand": "sudo apt-get update && sudo apt-get install -y --no-install-recommends make",
+  "postCreateCommand": "make -C 01-linux-fundamentals build || true",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-azuretools.vscode-docker"]
+    }
+  }
+}
