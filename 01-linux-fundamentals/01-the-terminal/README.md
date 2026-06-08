@@ -19,6 +19,7 @@ This set builds that fluency.
 # from the linux-fundamentals/ folder
 make build                          # once
 make start  S=01-the-terminal       # pristine Ubuntu shell, sandbox + history seeded
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=01-the-terminal       # grades the auto-checkable tasks
 make reset  S=01-the-terminal       # fresh start
 ```

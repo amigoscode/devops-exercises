@@ -14,6 +14,7 @@ exercises build real editing fluency, auto-graded inside a disposable container.
 ```bash
 make build                              # build the Vim image once
 make start  S=01-insert-and-save        # shell with files seeded; edit with vim
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=01-insert-and-save        # grade your edits
 make reset  S=01-insert-and-save        # fresh start
 ```

@@ -13,6 +13,7 @@ saved in `~/.bashrc`, not just typed once.
 ```bash
 # from the 03-linux-for-professionals/ folder
 make start  S=02-environment-variables
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=02-environment-variables
 make reset  S=02-environment-variables
 ```

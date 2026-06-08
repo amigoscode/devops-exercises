@@ -12,6 +12,7 @@ First skill: get text in, and get out safely. Vim starts in **normal mode**; pre
 # from the 02-vim/ folder
 make build                          # once
 make start  S=01-insert-and-save    # shell with files seeded in ~/sandbox
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 # ...edit with vim...
 make verify S=01-insert-and-save    # grade your work
 make reset  S=01-insert-and-save    # fresh start

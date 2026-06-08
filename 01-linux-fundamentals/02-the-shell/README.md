@@ -14,6 +14,7 @@ aliases they live by, a config they can reproduce anywhere. That's this set.
 # from the linux-fundamentals/ folder
 make build                       # once
 make start  S=02-the-shell       # pristine Ubuntu shell (default shell reset to bash)
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=02-the-shell       # grades your work
 make reset  S=02-the-shell       # fresh start
 ```

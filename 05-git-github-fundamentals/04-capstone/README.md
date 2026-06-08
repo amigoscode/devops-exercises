@@ -10,6 +10,7 @@ project pushed to a remote - the exact loop you'll run when starting any new rep
 
 ```bash
 make start  S=04-capstone
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=04-capstone
 make reset  S=04-capstone
 ```

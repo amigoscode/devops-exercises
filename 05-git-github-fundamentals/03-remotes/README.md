@@ -12,6 +12,7 @@ pushing to the real GitHub is a drill at the end.
 
 ```bash
 make start  S=03-remotes
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=03-remotes
 make reset  S=03-remotes
 ```

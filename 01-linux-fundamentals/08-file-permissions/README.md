@@ -28,6 +28,7 @@ Linux user tooling even on a Mac or Windows machine.
 make build                            # once
 
 make start  S=08-file-permissions     # drops you into Ubuntu, scenario seeded in ~/sandbox
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 # ...solve the exercises below...
 make verify S=08-file-permissions     # ✅ / ❌ per task, instant feedback
 make reset  S=08-file-permissions     # wipe and start fresh

@@ -11,6 +11,7 @@ into actual logic.
 
 ```bash
 make start  S=02-conditions-and-loops
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=02-conditions-and-loops
 make reset  S=02-conditions-and-loops
 ```

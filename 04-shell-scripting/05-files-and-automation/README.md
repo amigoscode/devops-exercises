@@ -11,6 +11,7 @@ downloads, and provision a whole directory layout in one command. This is what
 
 ```bash
 make start  S=05-files-and-automation
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=05-files-and-automation
 make reset  S=05-files-and-automation
 ```

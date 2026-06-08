@@ -12,6 +12,7 @@ something's wrong at 2am.
 ```bash
 # from the 03-linux-for-professionals/ folder
 make start  S=03-system-admin
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=03-system-admin
 make reset  S=03-system-admin
 ```

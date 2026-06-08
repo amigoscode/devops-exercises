@@ -11,6 +11,7 @@ Every exercise runs in a disposable Ubuntu container and is auto-graded.
 ```bash
 make build                              # build the image once
 make start  S=01-redirection-and-pipes
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=01-redirection-and-pipes
 make reset  S=01-redirection-and-pipes
 ```

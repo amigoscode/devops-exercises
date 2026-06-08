@@ -17,6 +17,7 @@ engineers, creating team groups, granting (and revoking) privileges. It's the mo
 # from the linux-fundamentals/ folder
 make build                          # once (rebuilds with adduser available)
 make start  S=07-users-and-groups
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=07-users-and-groups
 make reset  S=07-users-and-groups
 ```

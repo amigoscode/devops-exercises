@@ -17,6 +17,7 @@ engineer from a beginner is **how fast they find the answer**: `man`, `--help`,
 # from the linux-fundamentals/ folder
 make build                          # once (rebuilds with man pages restored)
 make start  S=03-linux-commands     # pristine Ubuntu shell, sandbox seeded
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=03-linux-commands     # grades your work
 make reset  S=03-linux-commands     # fresh start
 ```

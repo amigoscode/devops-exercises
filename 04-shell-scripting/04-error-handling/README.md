@@ -11,6 +11,7 @@ toy script and one you'd trust in a pipeline.
 
 ```bash
 make start  S=04-error-handling
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=04-error-handling
 make reset  S=04-error-handling
 ```

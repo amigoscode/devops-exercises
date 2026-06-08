@@ -47,6 +47,7 @@ the included [`.devcontainer`](.devcontainer/devcontainer.json)), then:
 ```bash
 cd 01-linux-fundamentals
 make start S=01-the-terminal     # pristine Ubuntu shell, scenario seeded
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=01-the-terminal    # grade your work
 make reset S=01-the-terminal     # fresh start
 ```
@@ -74,6 +75,7 @@ git clone https://github.com/YOUR-USERNAME/devops-exercises.git
 cd devops-exercises/01-linux-fundamentals
 make build                       # once
 make start S=01-the-terminal     # enter a pristine Ubuntu shell, scenario seeded
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=01-the-terminal    # grade your work
 make reset S=01-the-terminal     # fresh start
 ```

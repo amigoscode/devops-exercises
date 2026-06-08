@@ -12,6 +12,7 @@ you can push and clone without a GitHub account (real GitHub pushes are a drill)
 ```bash
 make build                  # build the image once
 make start  S=01-first-repo
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=01-first-repo
 make reset  S=01-first-repo
 ```

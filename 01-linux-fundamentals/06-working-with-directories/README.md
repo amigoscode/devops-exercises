@@ -17,6 +17,7 @@ respect the single most destructive command in Linux.
 # from the linux-fundamentals/ folder
 make build                              # once
 make start  S=06-working-with-directories
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=06-working-with-directories
 make reset  S=06-working-with-directories
 ```

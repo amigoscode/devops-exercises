@@ -12,6 +12,7 @@ automates Linux".
 ```bash
 make build                       # build the image once
 make start  S=01-bash-basics     # a clean ~/sandbox to write scripts in
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=01-bash-basics     # runs your scripts and grades them
 make reset  S=01-bash-basics     # fresh start
 ```

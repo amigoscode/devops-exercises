@@ -16,6 +16,7 @@ against every API in production.
 
 ```bash
 make start  S=04-networking
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=04-networking
 make reset  S=04-networking
 ```

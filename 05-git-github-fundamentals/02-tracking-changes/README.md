@@ -11,6 +11,7 @@ Work inside `~/sandbox/project` (it already has one commit).
 
 ```bash
 make start  S=02-tracking-changes
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=02-tracking-changes
 make reset  S=02-tracking-changes
 ```

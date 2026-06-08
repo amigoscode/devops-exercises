@@ -14,6 +14,7 @@ nature and your navigation automatic.
 # from the linux-fundamentals/ folder
 make build                          # once
 make start  S=04-linux-file-system  # pristine Ubuntu shell, sandbox seeded
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=04-linux-file-system  # grades your work
 make reset  S=04-linux-file-system  # fresh start
 ```

@@ -14,6 +14,7 @@ without fear.
 # from the linux-fundamentals/ folder
 make build                          # once
 make start  S=05-working-with-files # pristine Ubuntu shell, sandbox seeded
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=05-working-with-files # grades your work
 make reset  S=05-working-with-files # fresh start
 ```

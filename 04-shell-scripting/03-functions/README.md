@@ -11,6 +11,7 @@ pass in parameters.
 
 ```bash
 make start  S=03-functions
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=03-functions
 make reset  S=03-functions
 ```

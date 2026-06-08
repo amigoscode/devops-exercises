@@ -11,6 +11,7 @@ Speed in Vim comes from never reaching for the mouse. Move with `h j k l`, jump 
 ```bash
 # from the 02-vim/ folder
 make start  S=02-navigate-and-edit
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=02-navigate-and-edit
 make reset  S=02-navigate-and-edit
 ```

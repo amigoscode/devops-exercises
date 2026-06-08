@@ -12,6 +12,7 @@ get a key from AWS, so those steps need an account.
 
 ```bash
 make start  S=05-ssh
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=05-ssh
 make reset  S=05-ssh
 ```

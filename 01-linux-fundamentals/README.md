@@ -17,6 +17,7 @@ you'll go deep on later in the track.
 ```bash
 make build                            # build the Ubuntu image once
 make start  S=08-file-permissions     # enter a pristine shell, scenario seeded
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=08-file-permissions     # grade your work
 make reset  S=08-file-permissions     # fresh start
 make stop   S=08-file-permissions     # tidy up

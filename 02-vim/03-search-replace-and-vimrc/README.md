@@ -11,6 +11,7 @@ config files on a server.
 ```bash
 # from the 02-vim/ folder
 make start  S=03-search-replace-and-vimrc
+#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
 make verify S=03-search-replace-and-vimrc
 make reset  S=03-search-replace-and-vimrc
 ```
