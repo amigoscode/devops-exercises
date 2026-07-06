@@ -16,7 +16,7 @@ SB  := $(CURDIR)/sandbox/$(S)
 export SB SRC
 
 # Images the exercises build on. Pulled on demand by each seed, or all at once here.
-IMAGES := nginx:alpine python:3-alpine redis:alpine amigoscode/2048
+IMAGES := nginx:alpine python:3-alpine python:3-slim redis:alpine postgres:16-alpine amigoscode/2048
 
 .PHONY: setup start verify reset stop _check
 
