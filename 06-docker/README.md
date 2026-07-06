@@ -66,6 +66,7 @@ doing but not auto-checked (usually because it needs a login or the internet).
 | 05 | [Debugging](05-debugging/) | `logs`, `exec`, `inspect` |
 | 06 | [Networking & Compose](06-networking-and-compose/) | `network`, service-to-service, `docker compose` |
 | 07 | [Capstone: Full-Stack App](07-capstone/) | build a backend image + compose a UI + API + Postgres stack |
+| 08 | [Capstone: Microservices](08-capstone-microservices/) | 2 services + 2 databases + 1 UI, with service-to-service calls |
 
 Stuck on any task? Each section has a `solutions.md` - but try first.
 
