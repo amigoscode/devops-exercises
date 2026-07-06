@@ -91,9 +91,15 @@ make reset S=01-the-terminal     # fresh start
 | 03 | [Linux for Professionals](03-linux-for-professionals/) | ✅ 5 sections, fully tested |
 | 04 | [Shell Scripting](04-shell-scripting/) | ✅ 5 sections, fully tested |
 | 05 | [Git & GitHub Fundamentals](05-git-github-fundamentals/) | ✅ 4 sections, fully tested |
+| 06 | [Docker for Professionals](06-docker/) | ✅ 6 sections, fully tested |
 
-More courses in the DevOps track (Git for Professionals, Docker, CI/CD, AWS) will be
-added with the same format.
+More courses in the DevOps track (Git for Professionals, CI/CD, AWS) will be added
+with the same format.
+
+> The **Docker** course works a little differently: Docker itself is the subject, so
+> you run `docker` commands directly in your terminal instead of dropping into a
+> sandbox container. Its [README](06-docker/) explains the setup. Everything else
+> (fork, Codespaces, tiers, auto-grading) is identical.
 
 ## How the exercises work
 
