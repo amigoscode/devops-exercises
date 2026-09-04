@@ -5,6 +5,7 @@
 ```bash
 cd sandbox/03-volumes/site
 docker run -d --name bindweb -p 8080:80 -v "$(pwd)":/usr/share/nginx/html nginx:alpine
+# Windows PowerShell: docker run -d --name bindweb -p 8080:80 -v "${PWD}:/usr/share/nginx/html" nginx:alpine
 curl localhost:8080            # serves your index.html
 ```
 

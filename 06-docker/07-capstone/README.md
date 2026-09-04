@@ -21,11 +21,14 @@ image, and compose the stack.
 ## How to use this set
 
 ```bash
-# from the 06-docker/ folder
-make start  S=07-capstone
+# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+./course.sh start  07-capstone
 #   ...write the Dockerfile + compose file, bring the stack up, then:
-make verify S=07-capstone
-make reset  S=07-capstone      # tears the stack down and re-seeds the starter files
+./course.sh verify 07-capstone
+./course.sh reset  07-capstone      # tears the stack down and re-seeds the starter files
+
+# or from inside this folder, section name left out:
+#   ../course.sh verify
 ```
 
 The seed drops a full-stack app under `06-docker/sandbox/07-capstone/`:

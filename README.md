@@ -98,8 +98,17 @@ with the same format.
 
 > The **Docker** course works a little differently: Docker itself is the subject, so
 > you run `docker` commands directly in your terminal instead of dropping into a
-> sandbox container. Its [README](06-docker/) explains the setup. Everything else
-> (fork, Codespaces, tiers, auto-grading) is identical.
+> sandbox container. It also needs **no `make`** - it ships its own launcher and
+> Docker is the only thing you install:
+>
+> ```bash
+> ./course.sh verify 01-containers     # macOS/Linux/WSL - from this folder
+> course.cmd  verify 01-containers     # Windows
+> ./course.sh install                  # once: a `course` command that works anywhere
+> ```
+>
+> Its [README](06-docker/) explains the rest. Everything else (fork, Codespaces,
+> tiers, auto-grading) is identical.
 
 ## How the exercises work
 

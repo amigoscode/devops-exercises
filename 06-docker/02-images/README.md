@@ -11,11 +11,14 @@ release goes wrong.
 ## How to use this set
 
 ```bash
-# from the 06-docker/ folder
-make start  S=02-images
+# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+./course.sh start  02-images
 #   ...run the docker commands below in this terminal, then:
-make verify S=02-images
-make reset  S=02-images
+./course.sh verify 02-images
+./course.sh reset  02-images
+
+# or from inside this folder, section name left out:
+#   ../course.sh verify
 ```
 
 The seed leaves a stray `dashboard:latest` tag lying around for the Tier 3 clean-up.

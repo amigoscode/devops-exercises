@@ -19,4 +19,4 @@ if [ ! -f "$SB/site/index.html" ]; then
 HTML
 fi
 
-echo "Seeded: website at $SB/site/index.html; nginx:alpine ready."
+echo "Seeded: website at 06-docker/sandbox/03-volumes/site/index.html; nginx:alpine ready."

@@ -29,11 +29,14 @@ services and compose the whole system.
 ## How to use this set
 
 ```bash
-# from the 06-docker/ folder
-make start  S=08-capstone-microservices
+# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+./course.sh start  08-capstone-microservices
 #   ...write the two Dockerfiles + compose file, bring it up, then:
-make verify S=08-capstone-microservices
-make reset  S=08-capstone-microservices     # tear the system down and re-seed
+./course.sh verify 08-capstone-microservices
+./course.sh reset  08-capstone-microservices     # tear the system down and re-seed
+
+# or from inside this folder, section name left out:
+#   ../course.sh verify
 ```
 
 The seed drops the app under `06-docker/sandbox/08-capstone-microservices/`:

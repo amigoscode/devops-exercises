@@ -12,11 +12,14 @@ tools to diagnose and fix it.
 ## How to use this set
 
 ```bash
-# from the 06-docker/ folder
-make start  S=05-debugging
+# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+./course.sh start  05-debugging
 #   ...run the docker commands below in this terminal, then:
-make verify S=05-debugging
-make reset  S=05-debugging
+./course.sh verify 05-debugging
+./course.sh reset  05-debugging
+
+# or from inside this folder, section name left out:
+#   ../course.sh verify
 ```
 
 The seed leaves a misbehaving container called `buggy` running. Save your findings

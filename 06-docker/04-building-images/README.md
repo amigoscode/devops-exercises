@@ -11,11 +11,14 @@ an image. This is the single most important Docker skill for a DevOps engineer.
 ## How to use this set
 
 ```bash
-# from the 06-docker/ folder
-make start  S=04-building-images
+# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+./course.sh start  04-building-images
 #   ...write Dockerfiles and run docker build in this terminal, then:
-make verify S=04-building-images
-make reset  S=04-building-images
+./course.sh verify 04-building-images
+./course.sh reset  04-building-images
+
+# or from inside this folder, section name left out:
+#   ../course.sh verify
 ```
 
 The seed gives you two starter apps under `06-docker/sandbox/04-building-images/`:

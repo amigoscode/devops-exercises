@@ -13,11 +13,14 @@ production stacks are actually run.
 ## How to use this set
 
 ```bash
-# from the 06-docker/ folder
-make start  S=06-networking-and-compose
+# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+./course.sh start  06-networking-and-compose
 #   ...run the docker commands below in this terminal, then:
-make verify S=06-networking-and-compose
-make reset  S=06-networking-and-compose
+./course.sh verify 06-networking-and-compose
+./course.sh reset  06-networking-and-compose
+
+# or from inside this folder, section name left out:
+#   ../course.sh verify
 ```
 
 Write your compose file at

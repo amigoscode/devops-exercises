@@ -12,11 +12,14 @@ between "my data vanished" and a system you can trust.
 ## How to use this set
 
 ```bash
-# from the 06-docker/ folder
-make start  S=03-volumes
+# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+./course.sh start  03-volumes
 #   ...run the docker commands below in this terminal, then:
-make verify S=03-volumes
-make reset  S=03-volumes
+./course.sh verify 03-volumes
+./course.sh reset  03-volumes
+
+# or from inside this folder, section name left out:
+#   ../course.sh verify
 ```
 
 The seed creates a small website for you at
@@ -31,10 +34,16 @@ image** - bind-mount it straight in. Run an `nginx:alpine` container named `bind
 publish host port **8080** to **80**, and bind-mount the site folder onto nginx's web
 root `/usr/share/nginx/html`.
 
-> Tip: `cd` into the folder first, then use `$(pwd)` for the host path:
+> Tip: `cd` into the folder first, then use the "current folder" variable as the host path:
 > ```bash
+> # macOS / Linux / WSL
 > cd sandbox/03-volumes/site
 > docker run -d --name bindweb -p 8080:80 -v "$(pwd)":/usr/share/nginx/html nginx:alpine
+> ```
+> ```powershell
+> # Windows PowerShell - same command, ${PWD} instead of $(pwd)
+> cd sandbox\03-volumes\site
+> docker run -d --name bindweb -p 8080:80 -v "${PWD}:/usr/share/nginx/html" nginx:alpine
 > ```
 
 **1.2 (drill)** Edit `site/index.html` on your machine and reload `localhost:8080`.

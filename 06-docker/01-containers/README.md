@@ -13,11 +13,14 @@ You run `docker` commands directly in your terminal (see the main
 [course README](../README.md) for why there is no container to enter here).
 
 ```bash
-# from the 06-docker/ folder
-make start  S=01-containers      # seeds a couple of containers for you to manage
+# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+./course.sh start  01-containers      # seeds a couple of containers for you to manage
 #   ...run the docker commands below in this terminal, then:
-make verify S=01-containers      # grades your work
-make reset  S=01-containers      # remove this section's containers and start fresh
+./course.sh verify 01-containers      # grades your work
+./course.sh reset  01-containers      # remove this section's containers and start fresh
+
+# or from inside this folder, section name left out:
+#   ../course.sh verify
 ```
 
 The seed leaves two containers running for you: `scratch` and `old-web`.
