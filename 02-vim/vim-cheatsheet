@@ -1,0 +1,96 @@
+Vim Cheatcheet
+
+Mode: Normal
+
+h - Move cursor left
+
+j - Move cursor down
+
+k - Move cursor up
+
+l - Move cursor right
+
+dd - Delete the current line
+
+u - Undo the last change
+
+Ctrl + r - Redo the undone change
+
+:w - Save the file
+
+:q - Quit Vim
+
+:q! - Quit without saving
+
+:wq - Save and quit
+
+
+
+Mode: Insert
+
+i - Enter insert mode
+
+Esc - Exit insert mode
+
+
+
+Mode: Visual
+
+v - Enter visual mode
+
+y - Copy the selected text
+
+p - Paste the copied text
+
+
+
+Mode: Command-line
+
+/pattern - Search for a pattern
+
+:%s/old/new/g - Replace all occurrences of old with new
+
+
+
+Additional Commands
+Mode: Normal
+
+gg - Go to the first line of the file
+
+G - Go to the last line of the file
+
+0 - Move to the beginning of the line
+
+$ - Move to the end of the line
+
+w - Move to the beginning of the next word
+
+b - Move to the beginning of the previous word
+
+x - Delete the character under the cursor
+
+r - Replace the character under the cursor
+
+ciw - Change the inner word
+
+yy - Yank (copy) the current line
+
+p - Paste the yanked text
+
+
+
+Mode: Visual
+
+d - Delete the selected text
+
+> - Indent the selected text
+
+< - Unindent the selected text
+
+
+
+Mode: Command-line
+
+:help - Open Vim help
+
+This cheat sheet covers the most commonly used commands in Vim across different modes. Mastering these commands will significantly improve your efficiency when working with Vim.

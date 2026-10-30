@@ -1,0 +1,70 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  localstack:
+    image: localstack/localstack:3.0
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sqs
+      - AWS_DEFAULT_REGION=${AWS_REGION}
+      - SQS_QUEUES=message-analysis-queue
+    volumes:
+      - localstack_data:/var/lib/localstack
+    healthcheck:
+      # Natively supported by LocalStack 3.0+ images
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_CLOUD_AWS_CREDENTIALS_ACCESS_KEY=${AWS_KEY}
+      - SPRING_CLOUD_AWS_CREDENTIALS_SECRET_KEY=${AWS_SECRET}
+      - SPRING_CLOUD_AWS_SQS_ENDPOINT=http://localstack:4566
+      - AWS_QUEQUE_URL=http://localstack:4566/000000000000/message-analysis-queue
+      - APP_QUEUE_NAME=message-analysis-queue
+      - ENABLE_FAKE_HF=${USE_FAKE_AI}
+      - MANAGEMENT_OTLP_METRICS_EXPORT_ENABLED=false
+      - MANAGEMENT_OTLP_TRACING_EXPORT_ENABLED=false
+      - OTEL_TRACES_EXPORTER=none
+      - OTEL_METRICS_EXPORTER=none
+    depends_on:
+      db:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && echo -e 'GET /actuator/health HTTP/1.1\r\nHost: localhost\r\n\r\n' >&3 && cat <&3 | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
+  localstack_data:
+
+
+

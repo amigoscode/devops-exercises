@@ -1,152 +1,213 @@
-# 09 - Capstone: Ship a Real App (Open-Ended, Reviewed)
+# Smart Lead Qualification
 
-> The final Docker capstone - and a different kind of challenge. There is **no
-> auto-grader** here. You take a real, non-trivial application and make the whole
-> thing run with Docker Compose, then **submit it for review in the Academy**, exactly
-> like handing a running environment to a teammate.
+A Spring Boot application that automatically qualifies sales leads from incoming messages using AI analysis via a HuggingFace model, asynchronous processing through AWS SQS, and persistent storage in PostgreSQL.
 
-Everything so far gave you an app that was already wired up. Real DevOps work is the
-opposite: someone hands you a codebase and says *"get this running, reproducibly, for
-the whole team."* That is this capstone.
+## Overview
 
-## The application
+When a message arrives (e.g., a customer inquiry), the system:
 
-**Smart Lead Qualification** - a Spring Boot service that qualifies sales leads from
-incoming messages.
+1. Saves the message and publishes it to an SQS queue
+2. A listener picks up the message and sends it to an AI model for analysis
+3. The AI determines whether the message represents a qualified lead, and if so, extracts its type, urgency, and a summary
+4. The lead is persisted and linked back to the originating message
+5. A scheduler periodically retries messages that failed or were never processed
 
-- Repository: **https://github.com/ricardopissarra/smart-lead**
-- What it does: a message comes in over a REST API, gets published to a **queue**, a
-  listener picks it up and runs it through an **AI analyzer**, and if it looks like a
-  real lead it is saved to a **database** and linked back to the message.
+## Architecture
 
-It has real moving parts a DevOps engineer has to stand up:
-
-| Part | What it is |
-|---|---|
-| **App** | a Spring Boot (Java 21, Maven) service exposing a REST API on port 8080 |
-| **Database** | PostgreSQL (the app runs Flyway migrations on startup) |
-| **Queue** | AWS SQS, emulated locally by **LocalStack** |
-| **AI** | HuggingFace (external) - with a built-in **fake stub** so it runs with no API key |
-
-Read the project's own README first. Notice what is already there (a
-`docker-compose.yml` that starts *only* the infrastructure) and what is missing.
-
-## Your mission
-
-Make the **entire system** come up with Docker Compose - app included - on a machine
-that has nothing but Docker installed. No locally installed Java, no Maven, no manual
-steps. A reviewer should be able to clone your work and run **one command**, then hit
-the API and watch a message flow all the way through to a saved lead.
-
-This is deliberately open-ended. Part of the job is figuring out *what* is necessary
-and *how* to wire it together. That is the skill being assessed.
-
-## What "done" looks like (acceptance criteria)
-
-Your submission must satisfy all of these:
-
-1. **One command brings up everything.** `docker compose up` (optionally with
-   `--build`) starts the app, the database, and the queue - no host Java/Maven needed.
-2. **The app is containerized by you.** There is a `Dockerfile` for the Spring Boot
-   app that builds it from source (the running machine does not have Maven).
-3. **The services find each other.** The app talks to the database and the queue by
-   their Compose **service names**, not `localhost`. (The app currently defaults to
-   `localhost` - you have to change that without editing hard-coded values you should
-   not need to. Hint below.)
-4. **Correct startup.** The app does not crash because the database or queue "was not
-   ready yet." Ordering/health is handled.
-5. **The queue exists.** The SQS queue the app expects is present when the app starts.
-6. **Data persists.** Restarting the stack does not wipe the database.
-7. **No secrets required to run.** It comes up with **no** real API keys (use the
-   provided AI stub). If you support a real key, it is passed in safely, not committed.
-8. **It actually works end to end.** You can `POST` a message and then `GET` a lead
-   that was created from it.
-
-Prove #8 with something like:
-```bash
-# submit a message
-curl -X POST localhost:8080/api/v1/messages \
-  -H 'Content-Type: application/json' \
-  -d '{"content":"How much does the pro plan cost?"}'
-
-# a few seconds later, a lead should exist
-curl localhost:8080/api/v1/leads
+```
+POST /api/v1/messages
+        │
+        ▼
+  MessageService ──► PostgreSQL (status: CREATED)
+        │
+        ▼
+   SQS Queue
+        │
+        ▼
+ SqsMessageListener
+        │
+        ▼
+HuggingFaceLeadAnalyzerService
+        │
+   (AI Analysis)
+        │
+   ┌────┴────┐
+   │         │
+  Lead    No lead
+created   created
+   │
+   ▼
+PostgreSQL
+(Message status: PROCESSED, linked to Lead)
 ```
 
-## Things you will have to figure out
+### Retry & Resilience
 
-These are the real decisions - work them out, do not expect them spelled out:
+A scheduled job (`RetryMessageAnalysisScheduler`) runs every 15 minutes to handle two failure scenarios:
 
-- **Building the app image.** Maven build inside the image, or a pre-built jar? Keep
-  the final image lean (multi-stage is worth learning here).
-- **Pointing the app at the containers.** The app reads its config from
-  `application.properties`. Spring lets you **override any property with an environment
-  variable** - look at every `localhost`/queue/database value in that file and think
-  about which ones must change when the app runs *inside* Compose next to `db` and
-  `localstack`.
-- **Startup ordering.** `depends_on` alone waits for *start*, not for *ready*. How do
-  you make the app wait until Postgres and LocalStack are actually accepting work?
-- **Creating the queue.** The repo already has a LocalStack init hook - make sure it
-  runs and the app uses the same queue name.
-- **The AI call.** You have no HuggingFace key. The app ships a stub you can switch on
-  so analysis runs locally. Find it (the project README and the `dev` profile are good
-  places to look) and turn it on for this environment.
-- **Persistence.** Which volume keeps the database's data across `down`/`up`?
+- **Failed messages** — messages that encountered an error during analysis are retried
+- **Stuck messages** — messages that remained in `CREATED` status for more than 15 minutes (e.g., lost SQS events) are reprocessed
 
-### Heads-up: the shipped infra may not "just run"
+## Tech Stack
 
-The repo's existing `docker-compose.yml` starts the infrastructure, but do not assume
-it comes up cleanly on *your* machine with no accounts or tokens. Part of real DevOps
-work is making someone else's environment reproducible for everyone. Two things worth
-checking early (there are more):
+| Component | Technology |
+|---|---|
+| Framework | Spring Boot |
+| AI Integration | Spring AI + HuggingFace |
+| Messaging | AWS SQS (via Spring Cloud AWS) |
+| Database | PostgreSQL |
+| ORM | Spring Data JPA / Hibernate |
+| API Docs | SpringDoc OpenAPI (Swagger) |
+| Local Dev | LocalStack (SQS emulation) |
+| Containerisation | Docker Compose |
 
-- **LocalStack licensing.** The `latest` LocalStack image expects a paid auth token and
-  will quit without one. The SQS you need is available in the free community edition -
-  make the queue run with **no token required**.
-- **Postgres image version.** Newer Postgres major versions changed where the data
-  directory is mounted. A volume that "worked" on an older tag can make the container
-  refuse to start. Make sure your database comes up from cold *and* keeps its data.
+## Data Model
 
-Getting the infrastructure to start reliably for an outsider is part of the grade.
+### Message
 
-## Stretch goals (optional, impress the reviewer)
+Represents a raw customer message.
 
-- A healthcheck on the **app** itself (not just the dependencies).
-- A multi-stage build that produces a small runtime image, and a `.dockerignore`.
-- Run the app as a **non-root** user in the container.
-- A `Makefile` or short script wrapping the common commands.
-- A clean way to switch the real HuggingFace key on via an env var / `.env`.
-- Scale the app or add a reverse proxy in front of it.
+| Field | Type | Description |
+|---|---|---|
+| `id` | Long | Primary key |
+| `content` | String (LOB) | The message text |
+| `status` | Enum | `CREATED`, `PROCESSING`, `PROCESSED`, `FAILED` |
+| `lead` | Lead | Linked lead if one was created |
+| `createdAt` | LocalDateTime | Set on persist |
+| `updatedAt` | LocalDateTime | Set on update |
 
-## How to submit
+### Lead
 
-1. **Fork** the smart-lead repo (or start a fresh repo that contains it) so your work
-   lives somewhere you control.
-2. Add your `Dockerfile`, your Compose changes, and anything else you needed.
-3. Fill in [`SUBMISSION.md`](SUBMISSION.md) (copy it into your project) - it asks how to
-   run your solution and to explain the key decisions you made and why.
-4. Push it, and **submit the repository link in the Academy for review.**
+A qualified lead extracted from a message.
 
-You will be assessed against [`RUBRIC.md`](RUBRIC.md) - read it before you start so you
-know what "great" looks like. Do not just aim for "it runs" - aim for something you
-would be happy to hand a teammate.
+| Field | Type | Description |
+|---|---|---|
+| `id` | Long | Primary key |
+| `title` | String | Short lead title |
+| `type` | Enum | `DEMO_REQUEST`, `PRICING_INQUIRY`, `PARTNERSHIP`, `SUPPORT`, `OTHER` |
+| `urgencyLevel` | Enum | `LOW`, `MEDIUM`, `HIGH` |
+| `description` | String | AI-generated summary |
+| `message` | Message | The originating message |
 
----
+## API Endpoints
 
-## Self-check before you submit (optional)
+### Messages
 
-Copy [`self-check.sh`](self-check.sh) into the root of your solution and run it after
-`docker compose up`. It exercises the full flow (starts nothing itself - just probes)
-and tells you whether an outsider can bring your stack up and get a lead. It is a
-sanity check, **not** the official grade - a human still reviews your design.
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/v1/messages` | List all messages (paginated, sorted by `createdAt` ASC) |
+| `POST` | `/api/v1/messages` | Submit a new message for analysis |
 
-## Self-reflection questions (answer in your SUBMISSION.md)
+**POST body:**
+```json
+{
+  "content": "How much does it cost to upgrade to the pro plan?"
+}
+```
 
-1. Which `application.properties` values did you override, and why those exactly?
-2. How did you guarantee the app does not start before the database and queue are
-   ready - and how is that different from a plain `depends_on`?
-3. Where does the database data live, and how did you prove it survives a restart?
-4. How would you switch this environment from the AI stub to a real HuggingFace key
-   without changing the image or committing a secret?
-5. What did you do to keep the final image small and safe, and what would you improve
-   with more time?
+### Leads
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/v1/leads` | List all leads (paginated, sorted by `createdAt` ASC) |
+| `GET` | `/api/v1/leads/{id}` | Get a lead by ID |
+
+Full interactive API documentation is available at `/api/docs` when the application is running.
+
+## Getting Started
+
+### Prerequisites
+
+- Java 21+
+- Docker & Docker Compose
+- A HuggingFace API key (or enable the fake stub — see below)
+
+### 1. Start infrastructure
+
+```bash
+docker compose up -d
+```
+
+This starts:
+- **LocalStack** on port `4566` (SQS)
+- **PostgreSQL** on port `5432`
+- **Grafana** on port `3000` (for metrics)
+- **OpenTelemetry Collector** on port `4318` (for metrics)
+- 
+### 2. Configure the application
+
+Set the following properties in `application.properties` (or as environment variables):
+
+```properties
+# Database
+spring.datasource.url=jdbc:postgresql://localhost:5432/smartlead
+spring.datasource.username=myuser
+spring.datasource.password=mysecretpassword
+
+# AWS SQS
+spring.cloud.aws.credentials.access-key=test
+spring.cloud.aws.credentials.secret-key=test
+spring.cloud.aws.sqs.endpoint=http://localhost:4566
+aws.queque-url=http://localhost:4566/000000000000/message-analysis-queue
+app.queue.name=message-analysis-queue
+
+# Set to true to skip real HuggingFace calls during development
+enable.fake.hf=false
+
+# Management endpoints
+management.endpoints.web.exposure.include=health,info,prometheus,metrics
+management.endpoint.health.show-details=always
+
+# Enable liveness and readiness probes
+management.endpoint.health.probes.enabled=true
+management.health.mongodb.enabled=false
+
+# Enable liveness & readiness states
+management.health.livenessState.enabled=true
+management.health.readinessState.enabled=true
+
+# Observability
+# For development keep 1.0 for all traces to export, production environment keep 0.1
+management.tracing.sampling.probability=1.0
+management.otlp.metrics.export.enabled=true
+management.otlp.metrics.export.url=http://localhost:4318/v1/metrics
+management.opentelemetry.tracing.export.otlp.endpoint=¢http://localhost:4318/v1/traces
+management.opentelemetry.logging.export.otlp.endpoint=http://localhost:4318/v1/logs
+
+```
+
+### 3. Run the application
+
+```bash
+./mvnw spring-boot:run
+```
+
+### AI Prompt
+
+The prompt sent to the AI model is loaded from `src/main/resources/prompt/lead-prompt.txt`. Edit this file to tune how the model classifies messages and extracts lead data.
+
+The model is expected to return a structured response matching `LeadAnalysisResult`:
+
+```json
+{
+  "shouldCreateLead": true,
+  "title": "Pricing Inquiry",
+  "type": "PRICING_INQUIRY",
+  "urgencyLevel": "HIGH",
+  "description": "User is asking about the cost of the pro plan upgrade."
+}
+```
+
+## Project Structure
+
+```
+src/main/java/com/rpissarra/smartleadqualification/
+├── huggingface/        # AI integration (analyzer interface, service, result record)
+├── lead/               # Lead entity, repository, service, controller, DTOs, enums
+├── message/            # Message entity, repository, service, controller, DTOs, enums
+├── scheduler/          # Retry scheduler for failed/stuck messages
+└── sqs/                # SQS listener
+src/main/resources/
+└── prompt/
+    └── lead-prompt.txt # System prompt for AI analysis
+```

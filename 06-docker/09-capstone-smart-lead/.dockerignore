@@ -1,0 +1,17 @@
+.git
+.github
+.git/
+.gitignore
+.gitattributes
+.github/
+
+target/
+
+*.md
+
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project

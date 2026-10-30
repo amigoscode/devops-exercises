@@ -1,0 +1,65 @@
+student@982c7e3240b9:~/sandbox$ cat history.txt 
+    1  ls
+    2  ls -a
+    3  cd
+    4  pwd
+    5  cd ~
+    6  pwd
+    7  pwd > ~/sandbox/root.txt
+    8  exit
+    9  cd /
+   10  pwd
+   11  pwd ~/sandbox/root.txt 
+   12  pwd > ~/sandbox/root.txt 
+   13  exit
+   14  cd ~
+   15  pwd
+   16  echo $HOME > ~/sandbox/home.txt
+   17  cat ~/sandbox/home.txt 
+   18  exit
+   19  tree -L 1
+   20  tree -L
+   21  tree -L 1
+   22  tree -L 1 /
+   23  tree -L 1 / > ~/sandbox/tree.txt
+   24  exit
+   25  cd /tmp
+   26  touch student-was-here.txt
+   27  l
+   28  ls 
+   29  exit
+   30  cd
+   31  pwd
+   32  ls -a
+   33  ls
+   34  cd sandbox/
+   35  ls
+   36  cd a
+   37  ls
+   38  cd b
+   39  cd c
+   40  cd d
+   41  pwd
+   42  cd ../..
+   43  touch here.txt
+   44  exit
+   45  ls /etc > ~/sandbox/etc-listing.txt
+   46  exit
+   47  exit./..
+   48  printf /etc/\n/var/log\n/rott/\n/tmp > ~/sandbox/fhs.txt
+   49  cat ~/sandbox/fhs.txt 
+   50  exit
+   51  printf '/etc/\n/var/log\n/rott/\n/tmp' > ~/sandbox/fhs.txt
+   52  cat ~/sandbox/fhs.txt 
+   53  printf '/etc/\n/var/log\n/root\n/tmp' > ~/sandbox/fhs.txt
+   54  cat ~/sandbox/
+   55  cat ~/sandbox/fhs.txt 
+   56  printf '/etc/\n/var/log\n/root\n/tmp\n' > ~/sandbox/fhs.txt
+   57  cat ~/sandbox/fhs.txt 
+   58  exit
+   59  pwd
+   60  cd
+   61  cd /var/log
+   62  pwd
+   63  pwd > ~/sandbox/at-logs.txt
+   64  cat ~/sandbox/at-logs.txt 
