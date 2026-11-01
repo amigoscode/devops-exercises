@@ -9,6 +9,10 @@ By the end you will do what a DevOps engineer does every day: package an app int
 image, run it reproducibly anywhere, debug it when it misbehaves, and ship a stack
 of services that talk to each other.
 
+> **Easiest way in:** run `./academy.sh` (Windows: `academy.cmd`) from the repo root.
+> It opens this course in a terminal app - lessons, one-key sandboxes, instant
+> grading and progress tracking. The commands below still work if you prefer them.
+
 ## How this course is different
 
 In every other course you drop *into* a throwaway container and work there. Here

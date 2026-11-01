@@ -12,6 +12,10 @@ inside a disposable **Ubuntu container**, so:
 Using Docker to learn Linux is itself a step toward DevOps - it's the same tool
 you'll go deep on later in the track.
 
+> **Easiest way in:** run `./academy.sh` (Windows: `academy.cmd`) from the repo root.
+> It opens this course in a terminal app - lessons, one-key sandboxes, instant
+> grading and progress tracking. The commands below still work if you prefer them.
+
 ## Quick start
 
 ```bash

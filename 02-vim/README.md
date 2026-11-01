@@ -9,6 +9,10 @@ exercises build real editing fluency, auto-graded inside a disposable container.
 - 🔁 **Resettable** - `make reset` restores the starting files
 - 🎯 **DevOps-flavoured** - every task is the kind of config edit you'll do for real
 
+> **Easiest way in:** run `./academy.sh` (Windows: `academy.cmd`) from the repo root.
+> It opens this course in a terminal app - lessons, one-key sandboxes, instant
+> grading and progress tracking. The commands below still work if you prefer them.
+
 ## Quick start
 
 ```bash

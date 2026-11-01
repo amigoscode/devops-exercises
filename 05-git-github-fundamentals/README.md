@@ -7,6 +7,10 @@ auto-graded by inspecting actual git state.
 Everything runs offline in a container: the "remote" is a local **bare repo**, so
 you can push and clone without a GitHub account (real GitHub pushes are a drill).
 
+> **Easiest way in:** run `./academy.sh` (Windows: `academy.cmd`) from the repo root.
+> It opens this course in a terminal app - lessons, one-key sandboxes, instant
+> grading and progress tracking. The commands below still work if you prefer them.
+
 ## Quick start
 
 ```bash

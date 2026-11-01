@@ -6,7 +6,8 @@
     "ghcr.io/devcontainers/features/common-utils:2": {}
   },
   "onCreateCommand": "sudo apt-get update && sudo apt-get install -y --no-install-recommends make",
-  "postCreateCommand": "make -C 01-linux-fundamentals build || true",
+  "postCreateCommand": "./academy.sh --list >/dev/null; make -C 01-linux-fundamentals build || true",
+  "postAttachCommand": "echo; echo \"  Amigoscode Academy - run:  ./academy.sh\"; echo",
   "customizations": {
     "vscode": {
       "extensions": ["ms-azuretools.vscode-docker"]

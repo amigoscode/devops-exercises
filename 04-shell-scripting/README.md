@@ -7,6 +7,10 @@ handling - and the grader **runs them** to check they actually work.
 This is the course that turns "someone who knows Linux commands" into "someone who
 automates Linux".
 
+> **Easiest way in:** run `./academy.sh` (Windows: `academy.cmd`) from the repo root.
+> It opens this course in a terminal app - lessons, one-key sandboxes, instant
+> grading and progress tracking. The commands below still work if you prefer them.
+
 ## Quick start
 
 ```bash

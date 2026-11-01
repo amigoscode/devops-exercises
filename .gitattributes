@@ -1,0 +1,7 @@
+# Shell scripts must keep LF endings even on Windows checkouts, or bash inside the
+# exercise containers fails with "$'\r': command not found".
+*.sh        text eol=lf
+Makefile    text eol=lf
+Dockerfile  text eol=lf
+*.go        text eol=lf
+*.cmd       text eol=crlf
