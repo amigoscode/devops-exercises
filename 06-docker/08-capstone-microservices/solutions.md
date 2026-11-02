@@ -80,7 +80,7 @@ services:
   web:
     build: ./frontend
     ports:
-      - "8080:80"
+      - "8087:80"
     depends_on:
       - users-service
       - orders-service
@@ -98,9 +98,9 @@ docker compose ps
 
 ## Tier 3 - prove it
 ```bash
-curl localhost:8080/api/users     # [{"id":1,"name":"Alice"}, {"id":2,"name":"Bob"}]
-curl localhost:8080/api/orders    # each order carries the buyer's "user_name"
-curl localhost:8080               # the UI page showing both lists
+curl localhost:8087/api/users     # [{"id":1,"name":"Alice"}, {"id":2,"name":"Bob"}]
+curl localhost:8087/api/orders    # each order carries the buyer's "user_name"
+curl localhost:8087               # the UI page showing both lists
 ```
 If `/api/orders` shows real names (Alice/Bob) rather than "unknown", the
 service-to-service call worked and the whole mesh is live.
@@ -111,7 +111,7 @@ service-to-service call worked and the whole mesh is live.
 2. `http://users-service:5000` resolves to the `users-service` container via Compose's
    built-in DNS on the project network - services find each other by **service name**.
 3. Each Postgres runs in its own container with its own network namespace, so both can
-   use 5432 internally without clashing. A published host port (`8080:80`) maps to a
+   use 5432 internally without clashing. A published host port (`8087:80`) maps to a
    single host port, so that one must be unique on your machine.
 4. `/api/orders` still returns, but names fall back to `"unknown"` - `user_name()`
    retries the call a few times and then degrades gracefully instead of crashing.

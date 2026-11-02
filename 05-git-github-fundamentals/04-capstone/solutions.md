@@ -21,10 +21,7 @@ git remote add origin ~/sandbox/origin.git
 git push -u origin main
 ```
 
-Then:
-```bash
-make verify S=04-capstone     # expect 4/4
-```
+Then type `check` in the sandbox (or `exit` and let the Academy check it) - expect 4/4.
 
 ### The real-world version
 The only difference on a real project is step 3: instead of a local path you'd use

@@ -2,7 +2,7 @@
 # Runs INSIDE the container. Grades the Remotes exercises.
 set -uo pipefail
 SB="$HOME/sandbox"; P="$SB/project"; R="$SB/remote.git"
-[[ -d "$P/.git" ]] || { echo "No repo. Run 'make start S=03-remotes' first."; exit 1; }
+[[ -d "$P/.git" ]] || { echo "No repo. Open this section in the Academy (./academy.sh) and press enter first."; exit 1; }
 
 pass=0; fail=0
 ok(){ printf '  ✅ %s\n' "$1"; pass=$((pass+1)); }
@@ -10,7 +10,7 @@ no(){ printf '  ❌ %s\n' "$1"; fail=$((fail+1)); }
 remote_count(){ git -C "$R" rev-list --count main 2>/dev/null || echo 0; }
 
 echo "Tier 1 - Link to a remote"
-if git -C "$P" remote -v 2>/dev/null | grep -q 'remote.git'; then
+if git -C "$P" remote get-url origin 2>/dev/null | grep -q 'remote.git'; then
   ok "1.1 'origin' remote points at ~/sandbox/remote.git"
 else
   no "1.1 add the remote: git remote add origin ~/sandbox/remote.git"

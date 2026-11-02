@@ -1,5 +1,11 @@
 package main
 
+// Two screens, one set of keys:
+//
+//   Browse    courses │ sections        ↑↓ move · → / enter go in · ← / esc go back
+//   Exercise  questions on top, the selected question underneath
+//             ↑↓ pick a question · enter open the sandbox · v check · esc back
+
 import (
 	"fmt"
 	"os"
@@ -16,21 +22,18 @@ import (
 type screen int
 
 const (
-	scrHome screen = iota
-	scrCourse
-	scrSection
+	scrBrowse screen = iota
+	scrExercise
 )
 
-type tabID int
+// What the panel under the questions shows.
+type pane int
 
 const (
-	tabLesson tabID = iota
-	tabTasks
-	tabResults
-	tabSolution
+	paneQuestion pane = iota
+	paneLesson
+	paneSolution
 )
-
-var tabNames = map[tabID]string{tabLesson: "Lesson", tabTasks: "Tasks", tabResults: "Results", tabSolution: "Solution"}
 
 type (
 	dockerMsg struct {
@@ -60,17 +63,17 @@ type model struct {
 	w, h    int
 
 	scr       screen
+	col       int // browse: 0 = courses, 1 = sections
 	courseIx  int
 	sectionIx int
 	sec       *Section
 
-	tab        tabID
-	focusTasks bool
-	taskIx     int
-	vp         viewport.Model
-	vpKey      string
-	unlocked   map[string]bool
-	lastErr    map[string]string
+	pane     pane
+	q        int // selected question
+	vp       viewport.Model
+	vpKey    string
+	unlocked map[string]bool
+	lastErr  map[string]string
 
 	busy      bool
 	spin      spinner.Model
@@ -89,22 +92,28 @@ func newModel(ops *Ops, courses []*Course, prog *Progress) *model {
 	sp := spinner.New()
 	sp.Spinner = spinner.Spinner{Frames: []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}, FPS: time.Second / 12}
 	sp.Style = sBrand
+
+	// ↑↓ belong to the question list; the detail panel scrolls with PgUp/PgDn,
+	// ctrl+u/ctrl+d, shift+↑↓ or the mouse wheel.
 	vp := viewport.New(80, 20)
 	vp.MouseWheelEnabled = true
-	vp.KeyMap.Left = key.NewBinding(key.WithDisabled())
-	vp.KeyMap.Right = key.NewBinding(key.WithDisabled())
-	vp.KeyMap.PageDown = key.NewBinding(key.WithKeys("pgdown", "f"))
+	vp.KeyMap = viewport.KeyMap{
+		PageDown:     key.NewBinding(key.WithKeys("pgdown")),
+		PageUp:       key.NewBinding(key.WithKeys("pgup")),
+		HalfPageDown: key.NewBinding(key.WithKeys("ctrl+d")),
+		HalfPageUp:   key.NewBinding(key.WithKeys("ctrl+u")),
+		Down:         key.NewBinding(key.WithKeys("shift+down")),
+		Up:           key.NewBinding(key.WithKeys("shift+up")),
+		Left:         key.NewBinding(key.WithDisabled()),
+		Right:        key.NewBinding(key.WithDisabled()),
+	}
 	m := &model{
 		ops: ops, courses: courses, prog: prog, spin: sp, vp: vp,
 		unlocked: map[string]bool{}, lastErr: map[string]string{}, states: map[string]string{},
 	}
-	// Land the cursor on the course you were last working in.
+	// Land on the section you were last working in.
 	if s := m.continueTarget(); s != nil {
-		for i, c := range courses {
-			if c == s.Course {
-				m.courseIx = i
-			}
-		}
+		m.selectSection(s)
 	}
 	return m
 }
@@ -127,7 +136,7 @@ func (m *model) setFlash(msg string, bad bool) tea.Cmd {
 	m.flash, m.flashBad = msg, bad
 	m.flashSeq++
 	seq := m.flashSeq
-	return tea.Tick(6*time.Second, func(time.Time) tea.Msg { return flashDoneMsg(seq) })
+	return tea.Tick(7*time.Second, func(time.Time) tea.Msg { return flashDoneMsg(seq) })
 }
 
 func (m *model) run(op string, s *Section, status string, fn func() (string, error)) tea.Cmd {
@@ -135,11 +144,11 @@ func (m *model) run(op string, s *Section, status string, fn func() (string, err
 		return nil
 	}
 	if m.dockerErr != "" {
-		if v, err := m.ops.DockerVersion(); err != nil {
+		v, err := m.ops.DockerVersion()
+		if err != nil {
 			return m.setFlash(err.Error(), true)
-		} else {
-			m.dockerVer, m.dockerErr = v, ""
 		}
+		m.dockerVer, m.dockerErr = v, ""
 	}
 	m.busy, m.status = true, status
 	return func() tea.Msg {
@@ -153,7 +162,7 @@ func (m *model) openSandbox(s *Section) tea.Cmd {
 }
 
 func (m *model) verify(s *Section) tea.Cmd {
-	return m.run("verify", s, "Grading your work", func() (string, error) { return m.ops.Verify(s) })
+	return m.run("verify", s, "Checking your work", func() (string, error) { return m.ops.Verify(s) })
 }
 
 // ---- update ---------------------------------------------------------------------
@@ -200,7 +209,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(m.verify(msg.sec), tea.EnableMouseCellMotion)
 
 	case tea.MouseMsg:
-		if m.scr == scrSection && !m.focusTasks {
+		if m.scr == scrExercise {
 			var cmd tea.Cmd
 			m.vp, cmd = m.vp.Update(msg)
 			return m, cmd
@@ -219,11 +228,9 @@ func (m *model) onOpDone(msg opDoneMsg) tea.Cmd {
 	cmds := []tea.Cmd{refreshStates(m.ops)}
 	if msg.err != nil && msg.err != errNotStarted {
 		m.lastErr[s.Key()] = msg.err.Error()
-		if m.sec == s {
-			m.tab, m.vpKey = tabResults, ""
-		}
+		m.pane, m.vpKey = paneQuestion, ""
 		first := strings.SplitN(msg.err.Error(), "\n", 2)[0]
-		return tea.Batch(append(cmds, m.setFlash("✘ "+first+" - details in Results", true))...)
+		return tea.Batch(append(cmds, m.setFlash("✘ "+first, true))...)
 	}
 	delete(m.lastErr, s.Key())
 
@@ -233,11 +240,11 @@ func (m *model) onOpDone(msg opDoneMsg) tea.Cmd {
 		sp.Started = true
 		m.prog.Last = s.Key()
 		_ = m.prog.Save()
-		cmds = append(cmds, tea.ExecProcess(m.ops.Shell(s), func(error) tea.Msg { return shellDoneMsg{sec: s} }))
+		cmds = append(cmds, tea.ExecProcess(m.ops.Shell(s, m.shellBanner(s)), func(error) tea.Msg { return shellDoneMsg{sec: s} }))
 
 	case "verify":
 		if msg.err == errNotStarted {
-			cmds = append(cmds, m.setFlash("Open the sandbox first - press enter", true))
+			cmds = append(cmds, m.setFlash("Nothing to check yet - press enter to open your sandbox first", true))
 			break
 		}
 		sp := m.prog.Get(s.Key())
@@ -246,7 +253,8 @@ func (m *model) onOpDone(msg opDoneMsg) tea.Cmd {
 		m.prog.Last = s.Key()
 		_ = m.prog.Save()
 		if m.sec == s {
-			m.tab, m.vpKey = tabResults, ""
+			m.pane, m.vpKey = paneQuestion, ""
+			m.q = m.firstOpenQuestion() // jump straight to what still needs doing
 		}
 		switch {
 		case just && m.courseDone(s.Course):
@@ -254,11 +262,11 @@ func (m *model) onOpDone(msg opDoneMsg) tea.Cmd {
 		case just:
 			cmds = append(cmds, m.setFlash("★ Section complete! Press n for the next one.", false))
 		case res.Fail == 0 && res.Pass > 0:
-			cmds = append(cmds, m.setFlash("✔ Still all green.", false))
+			cmds = append(cmds, m.setFlash("✔ All checks still passing.", false))
 		case res.Pass+res.Fail > 0:
-			cmds = append(cmds, m.setFlash(fmt.Sprintf("%d of %d checks passing - the ✘ lines tell you what's missing", res.Pass, res.Pass+res.Fail), false))
+			cmds = append(cmds, m.setFlash(fmt.Sprintf("%d of %d done - the question with ✘ shows what's missing", res.Pass, res.Pass+res.Fail), false))
 		default:
-			cmds = append(cmds, m.setFlash("Grader finished - see Results", false))
+			cmds = append(cmds, m.setFlash("Check finished", false))
 		}
 
 	case "reset":
@@ -269,6 +277,8 @@ func (m *model) onOpDone(msg opDoneMsg) tea.Cmd {
 	}
 	return tea.Batch(cmds...)
 }
+
+// ---- keys -----------------------------------------------------------------------
 
 func (m *model) onKey(k tea.KeyMsg) tea.Cmd {
 	key := k.String()
@@ -290,130 +300,107 @@ func (m *model) onKey(k tea.KeyMsg) tea.Cmd {
 		}
 		return nil
 	}
-	if key == "?" {
+	switch key {
+	case "?":
 		m.help = true
 		return nil
+	case "q":
+		return tea.Quit
 	}
+	if m.scr == scrBrowse {
+		return m.browseKey(key)
+	}
+	return m.exerciseKey(key, k)
+}
 
-	switch m.scr {
-	case scrHome:
-		switch key {
-		case "q", "esc":
-			return tea.Quit
-		case "up", "k":
+func (m *model) browseKey(key string) tea.Cmd {
+	c := m.courses[m.courseIx]
+	switch key {
+	case "up", "k":
+		if m.col == 0 {
 			m.courseIx = (m.courseIx - 1 + len(m.courses)) % len(m.courses)
-		case "down", "j":
-			m.courseIx = (m.courseIx + 1) % len(m.courses)
-		case "enter", "right", "l":
-			m.scr = scrCourse
 			m.sectionIx = m.firstOpenSection(m.courses[m.courseIx])
-			return refreshStates(m.ops)
-		case "c":
-			if s := m.continueTarget(); s != nil {
-				m.openSection(s)
-				return refreshStates(m.ops)
-			}
-		}
-
-	case scrCourse:
-		c := m.courses[m.courseIx]
-		switch key {
-		case "q":
-			return tea.Quit
-		case "esc", "left", "h", "backspace":
-			m.scr = scrHome
-		case "up", "k":
+		} else {
 			m.sectionIx = (m.sectionIx - 1 + len(c.Sections)) % len(c.Sections)
-		case "down", "j":
-			m.sectionIx = (m.sectionIx + 1) % len(c.Sections)
-		case "enter", "right", "l":
-			m.openSection(c.Sections[m.sectionIx])
 		}
-
-	case scrSection:
-		return m.sectionKey(key, k)
+	case "down", "j":
+		if m.col == 0 {
+			m.courseIx = (m.courseIx + 1) % len(m.courses)
+			m.sectionIx = m.firstOpenSection(m.courses[m.courseIx])
+		} else {
+			m.sectionIx = (m.sectionIx + 1) % len(c.Sections)
+		}
+	case "right", "l", "enter", " ":
+		if m.col == 0 {
+			m.col = 1
+			return nil
+		}
+		m.openSection(c.Sections[m.sectionIx])
+		return refreshStates(m.ops)
+	case "left", "h", "esc", "backspace":
+		m.col = 0
+	case "c":
+		if s := m.continueTarget(); s != nil {
+			m.openSection(s)
+			return refreshStates(m.ops)
+		}
 	}
 	return nil
 }
 
-func (m *model) sectionKey(key string, k tea.KeyMsg) tea.Cmd {
+func (m *model) exerciseKey(key string, k tea.KeyMsg) tea.Cmd {
 	s := m.sec
-	tabs := m.tabs()
+	qs := m.questions()
 	switch key {
-	case "q":
-		return tea.Quit
-	case "esc", "backspace":
-		m.scr = scrCourse
-		m.focusTasks = false
-		return nil
-	case "enter":
+	case "esc", "backspace", "left", "h":
+		if m.pane != paneQuestion {
+			m.setPane(paneQuestion)
+			return nil
+		}
+		m.scr, m.col = scrBrowse, 1
+		m.selectSection(s)
+	case "up", "k":
+		if m.q > 0 {
+			m.q--
+		}
+		m.setPane(paneQuestion)
+	case "down", "j":
+		if m.q < len(qs)-1 {
+			m.q++
+		}
+		m.setPane(paneQuestion)
+	case "enter", "right":
 		if !m.busy {
 			return m.openSandbox(s)
 		}
 	case "v":
 		return m.verify(s)
-	case "r":
-		m.confirm = &confirmBox{"Reset this section?", "Your ~/sandbox is wiped and the scenario is seeded again.\nYour progress record is kept.", "reset"}
-	case "x":
-		m.confirm = &confirmBox{"Remove the sandbox?", "Deletes the container (and anything this section created).\nYour progress record is kept.", "stop"}
+	case " ", "space":
+		if m.q < len(qs) && qs[m.q].Kind == "drill" {
+			sp := m.prog.Get(s.Key())
+			sp.ToggleDrill(qs[m.q].ID)
+			_ = m.prog.Save()
+			m.vpKey = ""
+			return nil
+		}
+		return m.setFlash("Graded questions tick themselves - press v to check", false)
+	case "l":
+		if m.pane == paneLesson {
+			m.setPane(paneQuestion)
+		} else {
+			m.setPane(paneLesson)
+		}
 	case "s":
 		m.showSolution()
+	case "r":
+		m.confirm = &confirmBox{"Start this section over?", "Your ~/sandbox is wiped and the scenario is set up again.\nYour progress record is kept.", "reset"}
+	case "x":
+		m.confirm = &confirmBox{"Remove the sandbox?", "Deletes the container (and anything this section created).\nYour progress record is kept.", "stop"}
 	case "n":
 		m.step(+1)
 	case "p":
 		m.step(-1)
-	case "tab", "shift+tab":
-		i := 0
-		for j, t := range tabs {
-			if t == m.tab {
-				i = j
-			}
-		}
-		if key == "tab" {
-			i = (i + 1) % len(tabs)
-		} else {
-			i = (i - 1 + len(tabs)) % len(tabs)
-		}
-		m.setTab(tabs[i])
-	case "1", "2", "3", "4":
-		i := int(key[0] - '1')
-		if i < len(tabs) {
-			m.setTab(tabs[i])
-		}
-	case "right":
-		if m.wide() {
-			m.focusTasks = true
-		}
-	case "left":
-		if m.wide() {
-			m.focusTasks = false
-		}
 	default:
-		if m.tasksActive() {
-			switch key {
-			case "up", "k":
-				if m.taskIx > 0 {
-					m.taskIx--
-				}
-				m.vpKey = ""
-			case "down", "j":
-				if m.taskIx < len(m.visibleTasks())-1 {
-					m.taskIx++
-				}
-				m.vpKey = ""
-			case " ", "space":
-				ts := m.visibleTasks()
-				if m.taskIx < len(ts) && ts[m.taskIx].Kind == "drill" {
-					sp := m.prog.Get(s.Key())
-					sp.ToggleDrill(ts[m.taskIx].ID)
-					_ = m.prog.Save()
-					m.vpKey = ""
-				} else {
-					return m.setFlash("Graded tasks tick themselves when you press v", false)
-				}
-			}
-			return nil
-		}
 		var cmd tea.Cmd
 		m.vp, cmd = m.vp.Update(k)
 		return cmd
@@ -425,12 +412,12 @@ func (m *model) doConfirmed(op string) tea.Cmd {
 	s := m.sec
 	switch op {
 	case "reset":
-		return m.run("reset", s, "Resetting", func() (string, error) { return "", m.ops.Reset(s) })
+		return m.run("reset", s, "Starting over", func() (string, error) { return "", m.ops.Reset(s) })
 	case "stop":
 		return m.run("stop", s, "Cleaning up", func() (string, error) { return "", m.ops.Stop(s) })
 	case "solution":
 		m.unlocked[s.Key()] = true
-		m.setTab(tabSolution)
+		m.setPane(paneSolution)
 	}
 	return nil
 }
@@ -440,23 +427,27 @@ func (m *model) showSolution() {
 	if s.Solutions == "" {
 		return
 	}
+	if m.pane == paneSolution {
+		m.setPane(paneQuestion)
+		return
+	}
 	if m.unlocked[s.Key()] {
-		m.setTab(tabSolution)
+		m.setPane(paneSolution)
 		return
 	}
 	m.confirm = &confirmBox{"Peek at the solution?", "Struggling is where the learning happens.\nGive it one more honest try first - then come back if you're stuck.", "solution"}
 }
 
-func (m *model) setTab(t tabID) {
-	if t == tabSolution && !m.unlocked[m.sec.Key()] {
-		m.showSolution()
-		return
+func (m *model) setPane(p pane) {
+	if p != m.pane {
+		m.vp.GotoTop()
 	}
-	m.tab, m.vpKey = t, ""
-	m.vp.GotoTop()
+	m.pane, m.vpKey = p, ""
 }
 
-func (m *model) openSection(s *Section) {
+// ---- navigation -----------------------------------------------------------------
+
+func (m *model) selectSection(s *Section) {
 	for i, c := range m.courses {
 		if c == s.Course {
 			m.courseIx = i
@@ -467,26 +458,26 @@ func (m *model) openSection(s *Section) {
 			}
 		}
 	}
-	m.sec, m.scr = s, scrSection
-	m.tab, m.focusTasks, m.taskIx, m.vpKey = tabLesson, false, 0, ""
+}
+
+func (m *model) openSection(s *Section) {
+	m.selectSection(s)
+	m.sec, m.scr = s, scrExercise
+	m.pane, m.vpKey = paneQuestion, ""
+	m.q = m.firstOpenQuestion()
+	m.vp.GotoTop()
 	m.prog.Last = s.Key()
 	_ = m.prog.Save()
 }
 
 func (m *model) step(d int) {
-	c := m.sec.Course
-	for i, s := range c.Sections {
-		if s == m.sec {
-			j := i + d
-			switch {
-			case j >= 0 && j < len(c.Sections):
-				m.openSection(c.Sections[j])
-			case j >= len(c.Sections) && m.courseIx+1 < len(m.courses):
-				m.openSection(m.courses[m.courseIx+1].Sections[0])
-			case j < 0 && m.courseIx > 0:
-				prev := m.courses[m.courseIx-1]
-				m.openSection(prev.Sections[len(prev.Sections)-1])
-			}
+	var all []*Section
+	for _, c := range m.courses {
+		all = append(all, c.Sections...)
+	}
+	for i, s := range all {
+		if s == m.sec && i+d >= 0 && i+d < len(all) {
+			m.openSection(all[i+d])
 			return
 		}
 	}
@@ -494,31 +485,57 @@ func (m *model) step(d int) {
 
 // ---- derived state --------------------------------------------------------------
 
-func (m *model) wide() bool { return m.w >= 104 }
-
-func (m *model) tabs() []tabID {
-	t := []tabID{tabLesson}
-	if !m.wide() {
-		t = append(t, tabTasks)
+// questions is the README's task list, or - for sections without numbered tasks -
+// whatever the grader last reported.
+func (m *model) questions() []Task {
+	if len(m.sec.Tasks) > 0 {
+		return m.sec.Tasks
 	}
-	t = append(t, tabResults)
-	if m.sec != nil && m.sec.Solutions != "" {
-		t = append(t, tabSolution)
+	var ts []Task
+	for _, c := range ParseResult(m.prog.Peek(m.sec.Key()).LastOutput).Checks {
+		ts = append(ts, Task{ID: c.ID, Kind: "graded", Title: c.Text, Text: c.Text})
 	}
-	return t
+	return ts
 }
 
-func (m *model) tasksActive() bool {
-	return (m.wide() && m.focusTasks) || (!m.wide() && m.tab == tabTasks)
+// firstOpenQuestion is the first graded question not yet passing (else 0).
+func (m *model) firstOpenQuestion() int {
+	sp := m.prog.Peek(m.sec.Key())
+	for i, t := range m.questions() {
+		if t.Kind != "drill" && sp.TaskState(t.ID) != 1 {
+			return i
+		}
+	}
+	return 0
+}
+
+// check returns the grader's last line about a question, if any.
+func (m *model) check(id string) (Check, bool) {
+	for _, c := range ParseResult(m.prog.Peek(m.sec.Key()).LastOutput).Checks {
+		if c.ID == id {
+			return c, true
+		}
+	}
+	return Check{}, false
+}
+
+func (m *model) questionCounts(s *Section) (done, total int) {
+	sp := m.prog.Peek(s.Key())
+	for _, t := range s.Tasks {
+		if t.Kind == "drill" {
+			continue
+		}
+		total++
+		if sp.TaskState(t.ID) == 1 {
+			done++
+		}
+	}
+	return done, total
 }
 
 func (m *model) courseDone(c *Course) bool {
-	for _, s := range c.Sections {
-		if m.prog.Peek(s.Key()).Status() != Done {
-			return false
-		}
-	}
-	return true
+	d, t := m.courseCounts(c)
+	return d == t
 }
 
 func (m *model) courseCounts(c *Course) (done, total int) {
@@ -556,23 +573,19 @@ func (m *model) continueTarget() *Section {
 	return first
 }
 
-// visibleTasks is the README task list, or - for sections without numbered tasks -
-// whatever the grader last reported.
-func (m *model) visibleTasks() []Task {
-	if len(m.sec.Tasks) > 0 {
-		return m.sec.Tasks
+func (m *model) anyProgress() bool {
+	for _, sp := range m.prog.Sections {
+		if sp.Status() != NotStarted {
+			return true
+		}
 	}
-	var ts []Task
-	for _, c := range ParseResult(m.prog.Peek(m.sec.Key()).LastOutput).Checks {
-		ts = append(ts, Task{ID: c.ID, Kind: "graded", Title: c.Text})
-	}
-	return ts
+	return false
 }
 
 func (m *model) containerState(s *Section) string {
 	if s.Course.Kind == KindHost {
 		if exists(m.ops.hostSandbox(s)) {
-			return "seeded"
+			return "running"
 		}
 		return ""
 	}
@@ -580,7 +593,7 @@ func (m *model) containerState(s *Section) string {
 }
 
 func init() {
-	// Make lipgloss render for a dark canvas even if the terminal can't tell us.
+	// Render for a dark canvas even if the terminal can't tell us.
 	lipgloss.SetHasDarkBackground(true)
 	_ = os.Setenv("GLAMOUR_STYLE", "dark")
 }

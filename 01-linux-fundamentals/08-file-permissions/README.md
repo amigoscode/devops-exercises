@@ -23,17 +23,10 @@ Everything runs inside a disposable Ubuntu container, so destructive commands
 (`rm -rf`, `chmod 000`, `chown root`) are completely safe - and you get real
 Linux user tooling even on a Mac or Windows machine.
 
-```bash
-# from the linux-fundamentals/ folder
-make build                            # once
-
-make start  S=08-file-permissions     # drops you into Ubuntu, scenario seeded in ~/sandbox
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-# ...solve the exercises below...
-make verify S=08-file-permissions     # ✅ / ❌ per task, instant feedback
-make reset  S=08-file-permissions     # wipe and start fresh
-make stop   S=08-file-permissions     # remove the container when done
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Linux Fundamentals → File Permissions** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 Stuck? See `solutions.md` - but try first.
 
@@ -75,7 +68,7 @@ time using **symbolic** notation only.
 Make it so the **owner can execute** it - and only the owner can write to it.
 
 **3.2** `service/app.conf` is mode `000`. The service needs to **read** it (owner
-and group); nobody should be able to write it.
+and group only - others get no access); nobody should be able to write it.
 
 **3.3** `service/app.log` is owned by `root:root`, so the service (running as you)
 can't write to it. Make the **`student` user the owner**, then ensure the owner can

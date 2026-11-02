@@ -9,12 +9,10 @@ toy script and one you'd trust in a pipeline.
 
 ## How to use this set
 
-```bash
-make start  S=04-error-handling
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=04-error-handling
-make reset  S=04-error-handling
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Shell Scripting → Error Handling** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 ---
 

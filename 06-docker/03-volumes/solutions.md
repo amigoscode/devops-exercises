@@ -4,9 +4,9 @@
 **1.1** Bind-mount the folder onto nginx's web root:
 ```bash
 cd sandbox/03-volumes/site
-docker run -d --name bindweb -p 8080:80 -v "$(pwd)":/usr/share/nginx/html nginx:alpine
-# Windows PowerShell: docker run -d --name bindweb -p 8080:80 -v "${PWD}:/usr/share/nginx/html" nginx:alpine
-curl localhost:8080            # serves your index.html
+docker run -d --name bindweb -p 8084:80 -v "$(pwd)":/usr/share/nginx/html nginx:alpine
+# Windows PowerShell: docker run -d --name bindweb -p 8084:80 -v "${PWD}:/usr/share/nginx/html" nginx:alpine
+curl localhost:8084            # serves your index.html
 ```
 
 **1.2** Edit `index.html`, reload - the change is live immediately.
@@ -30,6 +30,7 @@ docker run -d --name keeper -v appdata:/data nginx:alpine
 docker exec keeper sh -c 'echo survived > /data/persisted.txt'
 docker rm -f keeper
 docker run --rm -v appdata:/data nginx:alpine cat /data/persisted.txt   # "survived"
+docker run -d --name keeper -v appdata:/data nginx:alpine               # a new keeper: 2.2 needs it running
 ```
 
 ### Answers

@@ -56,10 +56,14 @@ FROM python:3-alpine
 WORKDIR /src
 COPY . .
 RUN python -m py_compile app.py
-RUN adduser -D appuser       # create an unprivileged user (Alpine syntax)
-USER appuser                 # everything after this runs as appuser
+# create an unprivileged user (Alpine syntax)
+RUN adduser -D appuser
+# everything after this runs as appuser
+USER appuser
 CMD ["python", "app.py"]
 ```
+(Comments in a Dockerfile must sit on their own line: `USER appuser  # ...` would make
+the whole rest of the line the user name, and the container would fail to start.)
 Rebuild, then check: `docker run --rm clock:1 whoami` prints `appuser`, not `root`.
 
 **3.3** Scan it:

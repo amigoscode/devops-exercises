@@ -24,5 +24,6 @@ EOF
 # A "runaway" process hogging the box - you'll find and kill it in Tier 2.
 pkill -x sleep 2>/dev/null || true
 nohup sleep 99999 >/dev/null 2>&1 & disown
+echo $! > /tmp/.academy-runaway-pid   # so the grader still knows it after you kill it
 
 echo "Sandbox ready. There's a runaway 'sleep' process running - find it and note its PID."

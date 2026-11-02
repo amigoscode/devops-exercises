@@ -10,14 +10,10 @@ aliases they live by, a config they can reproduce anywhere. That's this set.
 
 ## How to use this set
 
-```bash
-# from the linux-fundamentals/ folder
-make build                       # once
-make start  S=02-the-shell       # pristine Ubuntu shell (default shell reset to bash)
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=02-the-shell       # grades your work
-make reset  S=02-the-shell       # fresh start
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Linux Fundamentals → The Shell** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 > **Note on oh-my-zsh:** installing it needs internet (it git-clones from GitHub),
 > so it's **not required** for grading. Everything graded here works with plain
@@ -67,8 +63,9 @@ The real framework that makes `.zshrc` themes and plugins come alive:
 ```bash
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 ```
-Then re-open zsh and watch your theme + git plugin activate. Not graded (CI has
-no network), but do it on your own machine - it's the payoff for §8.
+Then re-open zsh and watch your theme + git plugin activate. Not graded, and the
+installer needs `git`, which the sandbox doesn't have - so do it on your own
+machine. It's the payoff for §8.
 
 ## Self-check questions
 

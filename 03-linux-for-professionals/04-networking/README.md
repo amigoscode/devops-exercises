@@ -14,12 +14,10 @@ against every API in production.
 
 ## How to use this set
 
-```bash
-make start  S=04-networking
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=04-networking
-make reset  S=04-networking
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Linux for Professionals → Networking** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 ---
 

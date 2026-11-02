@@ -2,7 +2,7 @@
 # Runs INSIDE the container. Grades the Insert & Save exercises.
 set -uo pipefail
 SB="$HOME/sandbox"
-[[ -d "$SB" ]] || { echo "No sandbox. Run 'make start S=01-insert-and-save' first."; exit 1; }
+[[ -d "$SB" ]] || { echo "No sandbox. Open this section in the Academy (./academy.sh) and press enter first."; exit 1; }
 
 pass=0; fail=0
 ok(){ printf '  ✅ %s\n' "$1"; pass=$((pass+1)); }

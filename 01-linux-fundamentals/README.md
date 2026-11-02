@@ -12,22 +12,21 @@ inside a disposable **Ubuntu container**, so:
 Using Docker to learn Linux is itself a step toward DevOps - it's the same tool
 you'll go deep on later in the track.
 
-> **Easiest way in:** run `./academy.sh` (Windows: `academy.cmd`) from the repo root.
-> It opens this course in a terminal app - lessons, one-key sandboxes, instant
-> grading and progress tracking. The commands below still work if you prefer them.
-
 ## Quick start
 
+From the repo root:
+
 ```bash
-make build                            # build the Ubuntu image once
-make start  S=08-file-permissions     # enter a pristine shell, scenario seeded
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=08-file-permissions     # grade your work
-make reset  S=08-file-permissions     # fresh start
-make stop   S=08-file-permissions     # tidy up
+./academy.sh        # macOS, Linux, WSL, Git Bash, Codespaces
+academy.cmd         # Windows
 ```
 
-You only need **Docker** + **make** installed. (Codespaces works too - zero install.)
+Pick **Linux Fundamentals**, choose a section and press `enter`: you get a fresh Ubuntu
+sandbox with the scenario already set up and the questions printed at the top.
+Inside it, `questions` shows them again, `check` grades your work, and `exit`
+takes you back with your progress saved.
+
+**Docker is the only thing you need installed.** (Codespaces works too - zero install.)
 
 ## Sections
 

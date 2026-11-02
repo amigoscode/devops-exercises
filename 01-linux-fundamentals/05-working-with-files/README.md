@@ -10,14 +10,10 @@ without fear.
 
 ## How to use this set
 
-```bash
-# from the linux-fundamentals/ folder
-make build                          # once
-make start  S=05-working-with-files # pristine Ubuntu shell, sandbox seeded
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=05-working-with-files # grades your work
-make reset  S=05-working-with-files # fresh start
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Linux Fundamentals → Working with Files** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 ---
 

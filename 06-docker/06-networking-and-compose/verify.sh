@@ -19,10 +19,10 @@ else no "1.1 create the network 'appnet' (docker network create appnet)"; fi
 echo "Tier 2 - Make containers talk by name"
 if running store && onnet store appnet; then ok "2.1 'store' (redis:alpine) is running on appnet"
 else no "2.1 run redis:alpine as 'store' attached to appnet (--network appnet)"; fi
-if running api && onnet api appnet && pubport api 8082 && resolves api store; then
-  ok "2.2 'api' is on appnet, published on 8082, and reaches 'store' by name"
+if running api && onnet api appnet && pubport api 8085 && resolves api store; then
+  ok "2.2 'api' is on appnet, published on 8085, and reaches 'store' by name"
 else
-  no "2.2 run nginx:alpine as 'api' on appnet, -p 8082:80; it must resolve 'store' by name"
+  no "2.2 run nginx:alpine as 'api' on appnet, -p 8085:80; it must resolve 'store' by name"
 fi
 
 echo "Tier 3 - Let Compose run the whole stack"

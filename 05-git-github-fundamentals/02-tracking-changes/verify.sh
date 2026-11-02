@@ -2,7 +2,7 @@
 # Runs INSIDE the container. Grades the Tracking Changes exercises.
 set -uo pipefail
 SB="$HOME/sandbox"; P="$SB/project"
-[[ -d "$P/.git" ]] || { echo "No repo. Run 'make start S=02-tracking-changes' first."; exit 1; }
+[[ -d "$P/.git" ]] || { echo "No repo. Open this section in the Academy (./academy.sh) and press enter first."; exit 1; }
 
 pass=0; fail=0
 ok(){ printf '  ✅ %s\n' "$1"; pass=$((pass+1)); }

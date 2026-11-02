@@ -7,21 +7,21 @@ auto-graded by inspecting actual git state.
 Everything runs offline in a container: the "remote" is a local **bare repo**, so
 you can push and clone without a GitHub account (real GitHub pushes are a drill).
 
-> **Easiest way in:** run `./academy.sh` (Windows: `academy.cmd`) from the repo root.
-> It opens this course in a terminal app - lessons, one-key sandboxes, instant
-> grading and progress tracking. The commands below still work if you prefer them.
-
 ## Quick start
 
+From the repo root:
+
 ```bash
-make build                  # build the image once
-make start  S=01-first-repo
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=01-first-repo
-make reset  S=01-first-repo
+./academy.sh        # macOS, Linux, WSL, Git Bash, Codespaces
+academy.cmd         # Windows
 ```
 
-Needs **Docker** and **make** (both provided in GitHub Codespaces).
+Pick **Git & GitHub Fundamentals**, choose a section and press `enter`: you get a fresh Ubuntu
+sandbox with the scenario already set up and the questions printed at the top.
+Inside it, `questions` shows them again, `check` grades your work, and `exit`
+takes you back with your progress saved.
+
+**Docker is the only thing you need installed.** (Codespaces works too - zero install.)
 
 ## Sections
 

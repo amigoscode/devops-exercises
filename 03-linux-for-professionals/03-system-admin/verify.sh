@@ -2,7 +2,7 @@
 # Runs INSIDE the container. Grades the System Admin exercises.
 set -uo pipefail
 SB="$HOME/sandbox"
-[[ -d "$SB" ]] || { echo "No sandbox. Run 'make start S=03-system-admin' first."; exit 1; }
+[[ -d "$SB" ]] || { echo "No sandbox. Open this section in the Academy (./academy.sh) and press enter first."; exit 1; }
 
 pass=0; fail=0
 ok(){ printf '  ✅ %s\n' "$1"; pass=$((pass+1)); }
@@ -27,7 +27,8 @@ if [[ -f "$SB/processes.txt" ]] && grep -q 'PID' "$SB/processes.txt"; then
 else
   no "2.1 ps aux > ~/sandbox/processes.txt"
 fi
-actual_pid="$(pgrep -x sleep | head -1)"
+actual_pid="$(cat /tmp/.academy-runaway-pid 2>/dev/null)"   # recorded by seed.sh: killing it afterwards is fine
+[[ -n "$actual_pid" ]] || actual_pid="$(pgrep -x sleep | head -1)"
 if [[ -n "$actual_pid" ]] && grep -qw "$actual_pid" "$SB/runaway-pid.txt" 2>/dev/null; then
   ok "2.2 identified the runaway sleep process and recorded its PID"
 else

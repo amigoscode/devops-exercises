@@ -113,6 +113,13 @@ pick() {
   export SB SRC
 }
 
+# Seeds the scenario. A section without a seed.sh (the open-ended capstone) has
+# nothing to set up; a seed that fails stops here so the caller sees the error.
+seed() {
+  [ -f "$SRC/seed.sh" ] || return 0
+  bash "$SRC/seed.sh" || { echo "Setting up $S failed (see above)."; return 1; }
+}
+
 LAUNCHER="${COURSE_LAUNCHER:-./course.sh}"
 CMD="${1:-help}"
 shift || true
@@ -130,11 +137,11 @@ case "$CMD" in
   start)
     need_docker; pick "${1:-}"
     mkdir -p "$SB"
-    bash "$SRC/seed.sh"
+    seed || exit 1
     echo
     echo "Seeded $S. Your working files (if any) are in: 06-docker/sandbox/$S"
     echo "Now run the docker commands from the README in this terminal, then:"
-    echo "  $LAUNCHER verify $S"
+    if [ "$LAUNCHER" = academy ]; then echo "  check"; else echo "  $LAUNCHER verify $S"; fi
     ;;
 
   verify)
@@ -146,7 +153,7 @@ case "$CMD" in
     need_docker; pick "${1:-}"
     bash "$SRC/clean.sh" >/dev/null 2>&1 || true
     rm -rf "$SB"; mkdir -p "$SB"
-    bash "$SRC/seed.sh"
+    seed || exit 1
     echo "Re-seeded $S. Fresh start."
     ;;
 

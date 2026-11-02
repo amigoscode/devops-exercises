@@ -24,7 +24,7 @@ tools to diagnose and fix it.
 
 The seed leaves a misbehaving container called `buggy` running. Save your findings
 into files under `06-docker/sandbox/05-debugging/` (run the commands from the
-`06-docker/` folder so the relative paths line up).
+`06-docker/` folder so the relative paths line up - the Academy's shell starts there).
 
 ---
 

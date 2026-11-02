@@ -118,6 +118,27 @@ Getting the infrastructure to start reliably for an outsider is part of the grad
 - A clean way to switch the real HuggingFace key on via an env var / `.env`.
 - Scale the app or add a reverse proxy in front of it.
 
+## Working on it in the Academy
+
+Press `enter` on this capstone and you get a shell with Docker, Docker Compose and
+`git` ready. Clone your fork into this section's sandbox folder and work there:
+
+```bash
+cd sandbox/09-capstone-smart-lead
+git clone https://github.com/<you>/smart-lead.git
+cd smart-lead
+docker compose up --build -d
+check                 # the self-check below, run against your stack
+```
+
+Edit the files with any editor on your machine - they are in
+`06-docker/sandbox/09-capstone-smart-lead/smart-lead` inside this repo. Commit and push
+from your own terminal, where your GitHub login lives.
+
+The app needs host port **8080**. If an earlier section still holds it (Containers'
+`web` publishes 8080), free it first with `docker rm -f web`, or press `x` on that
+section in the Academy.
+
 ## How to submit
 
 1. **Fork** the smart-lead repo (or start a fresh repo that contains it) so your work

@@ -12,6 +12,7 @@ ps aux > ~/sandbox/processes.txt                 # 2.1
 # 2.2 - find the runaway and record its PID:
 ps aux | grep sleep                              # read the PID (ignore the grep line)
 echo <PID> > ~/sandbox/runaway-pid.txt           # write the PID you found
+kill <PID>                                       # optional: stop it - the PID you recorded still counts
 ```
 
 ## Tier 3

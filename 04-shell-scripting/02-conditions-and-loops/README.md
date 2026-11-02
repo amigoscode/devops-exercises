@@ -9,12 +9,10 @@ into actual logic.
 
 ## How to use this set
 
-```bash
-make start  S=02-conditions-and-loops
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=02-conditions-and-loops
-make reset  S=02-conditions-and-loops
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Shell Scripting → Conditions & Loops** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 ---
 
@@ -29,7 +27,7 @@ parameter and prints `adult` if it's **18 or more**, otherwise `minor`.
 (using a loop, not five `echo`s).
 
 **2.2 (graded)** Write `~/sandbox/sum.sh` that **adds up** every number from 1 to
-its first parameter and prints the total - e.g. `./sum.sh 5` → `15`.
+its first parameter with a loop and prints the total - e.g. `./sum.sh 5` → `15`.
 
 ## Tier 3 - Loop + decision together *(goal only)*
 

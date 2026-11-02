@@ -1,6 +1,7 @@
 # Solutions - Debugging
 
-Run these from the `06-docker/` folder so the relative paths match.
+Run these from the `06-docker/` folder so the relative paths match (the Academy's
+shell starts there).
 
 ## Tier 1
 **1.1** Read the logs and grab the error line:

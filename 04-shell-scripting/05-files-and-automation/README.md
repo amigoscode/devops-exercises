@@ -9,14 +9,14 @@ downloads, and provision a whole directory layout in one command. This is what
 
 ## How to use this set
 
-```bash
-make start  S=05-files-and-automation
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=05-files-and-automation
-make reset  S=05-files-and-automation
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Shell Scripting → Files & Automation** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 A couple of files (`names.txt`, `data.txt`) are seeded for you to work on.
+`check` re-runs your scripts, and first deletes `deploy.log`, `data.sha256` and
+`app/`, so those must be created by your scripts, not by hand.
 
 ---
 

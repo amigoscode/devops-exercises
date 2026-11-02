@@ -2,7 +2,7 @@
 # Runs INSIDE the container. Grades the Bash Basics scripts by running them.
 set -uo pipefail
 SB="$HOME/sandbox"
-[[ -d "$SB" ]] || { echo "No sandbox. Run 'make start S=01-bash-basics' first."; exit 1; }
+[[ -d "$SB" ]] || { echo "No sandbox. Open this section in the Academy (./academy.sh) and press enter first."; exit 1; }
 
 pass=0; fail=0
 ok(){ printf '  ✅ %s\n' "$1"; pass=$((pass+1)); }
@@ -16,8 +16,10 @@ if [[ -f "$SB/hello.sh" ]] && head -1 "$SB/hello.sh" | grep -q '^#!' \
 else
   no "1.1 hello.sh must start with a shebang, be executable (chmod +x), and echo 'Hello, DevOps'"
 fi
-# 1.2 - uses a variable
-if [[ -f "$SB/count.sh" ]] && [[ "$(bash "$SB/count.sh" 2>/dev/null)" == *"Count is 3"* ]]; then
+# 1.2 - uses a variable (assigns 3 to a name, then expands it with $name / ${name})
+if [[ -f "$SB/count.sh" ]] && [[ "$(bash "$SB/count.sh" 2>/dev/null)" == *"Count is 3"* ]] \
+   && grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=["'\'']?3["'\'']?([[:space:]]|$|;)' "$SB/count.sh" \
+   && grep -Eq '\$\{?[A-Za-z_]' "$SB/count.sh"; then
   ok "1.2 count.sh: stores 3 in a variable and prints 'Count is 3'"
 else
   no "1.2 count.sh must set a variable to 3 and echo 'Count is 3' (use \$var interpolation)"

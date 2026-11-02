@@ -61,7 +61,7 @@ mv ~/sandbox/"old releases" ~/sandbox/archived-releases
 2. `mkdir -p` creates **all missing parent directories** in the path (and doesn't
    error if they already exist).
 3. `rm -rf /` recursively deletes the entire filesystem with no recovery. Here a
-   disposable container protects you - `make reset` rebuilds the sandbox.
+   disposable container protects you - pressing `r` in the Academy rebuilds the sandbox.
 4. Wrap it in quotes (`"old releases"`) or escape the space with a backslash
    (`old\ releases`).
 

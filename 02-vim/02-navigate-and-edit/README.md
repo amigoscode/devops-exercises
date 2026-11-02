@@ -8,13 +8,10 @@ Speed in Vim comes from never reaching for the mouse. Move with `h j k l`, jump 
 
 ## How to use this set
 
-```bash
-# from the 02-vim/ folder
-make start  S=02-navigate-and-edit
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=02-navigate-and-edit
-make reset  S=02-navigate-and-edit
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Vim → Navigate & Edit** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 ---
 

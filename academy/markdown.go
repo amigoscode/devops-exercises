@@ -1,7 +1,9 @@
 package main
 
 import (
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/glamour/ansi"
@@ -47,8 +49,6 @@ func brandStyle() ansi.StyleConfig {
 
 	s.Code.Color = sp("#22D3EE")
 	s.Code.BackgroundColor = sp("#211A3D")
-	s.Code.Prefix = " "
-	s.Code.Suffix = " "
 	s.CodeBlock.Margin = up(1)
 	if s.CodeBlock.Chroma != nil {
 		ch := *s.CodeBlock.Chroma
@@ -80,16 +80,56 @@ func RenderMarkdown(id, md string, width int) string {
 	}
 	r, err := glamour.NewTermRenderer(
 		glamour.WithStyles(brandStyle()),
-		glamour.WithWordWrap(max(width-2, 20)),
+		// leave slack for the margin and blockquote bars so no line ever exceeds the
+		// panel (the panel would re-wrap it and leave a ragged break)
+		glamour.WithWordWrap(max(width-6, 20)),
 		glamour.WithEmoji(),
 	)
 	if err != nil {
 		return md
 	}
-	out, err := r.Render(md)
+	out, err := r.Render(reflow(md))
 	if err != nil {
 		return md
 	}
 	mdMemo[id] = mdCache{key: key, out: out}
 	return out
+}
+
+var blockStart = regexp.MustCompile(`^\s*([-*+]\s|\d+[.)]\s|#|\||>|` + "```" + `)`)
+
+// reflow joins the hard-wrapped lines of each paragraph (and blockquote) so the
+// renderer can wrap them to the panel width without leaving ragged breaks.
+func reflow(md string) string {
+	lines := strings.Split(md, "\n")
+	var out []string
+	inCode := false
+	for _, l := range lines {
+		t := strings.TrimSpace(l)
+		if strings.HasPrefix(t, "```") {
+			inCode = !inCode
+			out = append(out, l)
+			continue
+		}
+		if inCode || len(out) == 0 || t == "" {
+			out = append(out, l)
+			continue
+		}
+		prev := out[len(out)-1]
+		pt := strings.TrimSpace(prev)
+		switch {
+		case pt == "" || strings.HasPrefix(pt, "```") || strings.HasPrefix(pt, "#") || strings.HasPrefix(pt, "|") ||
+			strings.HasSuffix(prev, "  ") || pt == "---":
+			out = append(out, l)
+		case strings.HasPrefix(t, ">") && strings.HasPrefix(pt, ">"):
+			out[len(out)-1] = prev + " " + strings.TrimSpace(strings.TrimPrefix(t, ">"))
+		case blockStart.MatchString(l):
+			out = append(out, l)
+		case strings.HasPrefix(pt, ">"):
+			out = append(out, l)
+		default:
+			out[len(out)-1] = prev + " " + t
+		}
+	}
+	return strings.Join(out, "\n")
 }

@@ -39,7 +39,7 @@ user-defined network can reach each other **by name** (Docker runs a built-in DN
 `appnet`.
 
 **2.2 (graded)** Run an nginx container named `api` (image `nginx:alpine`) attached to
-`appnet`, published on host port **8082**. Because both containers are on `appnet`,
+`appnet`, published on host port **8085**. Because both containers are on `appnet`,
 `api` can reach the cache using the hostname `store` - no IP addresses needed.
 
 > Prove it: `docker exec api getent hosts store` resolves `store` to its IP.

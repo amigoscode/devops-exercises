@@ -15,7 +15,7 @@ docker run -d --name store --network appnet redis:alpine
 
 **2.2** Run the api on the same network and prove name resolution:
 ```bash
-docker run -d --name api --network appnet -p 8082:80 nginx:alpine
+docker run -d --name api --network appnet -p 8085:80 nginx:alpine
 docker exec api getent hosts store     # resolves "store" to its IP - they can talk by name
 ```
 
@@ -42,8 +42,9 @@ docker compose up -d
 docker compose ps            # web and cache both running
 docker volume ls | grep cachedata
 curl localhost:8083          # nginx welcome page
-docker compose down          # tears the whole stack down (add -v to drop the volume)
 ```
+Only once it has been graded: `docker compose down` tears the whole stack down (add
+`-v` to drop the volume). Run it before `verify` and 3.1/3.2 fail again.
 
 ### Answers
 1. Docker runs an embedded DNS server for **user-defined** networks that resolves

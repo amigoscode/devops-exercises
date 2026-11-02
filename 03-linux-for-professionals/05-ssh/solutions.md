@@ -36,5 +36,6 @@ EOF
    **private** key secret on your machine.
 2. It stores host, user, port and key per alias, so `ssh myserver` replaces
    `ssh -i ~/.ssh/mykey.pem -p 22 ubuntu@203.0.113.10`.
-3. SSH ignores keys/configs that others can read - loose permissions are a security
-   risk, so it enforces `600` (config/private key) or `400` (a `.pem`).
+3. SSH ignores a private key that other users can read ("UNPROTECTED PRIVATE KEY FILE")
+   and refuses a config that other users can write to - loose permissions are a security
+   risk, so keep them owner-only: `600` (config/private key) or `400` (a `.pem`).

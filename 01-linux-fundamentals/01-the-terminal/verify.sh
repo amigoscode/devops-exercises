@@ -3,7 +3,7 @@
 # (The muscle-memory drills in the README are self-checked - no artifact to grade.)
 set -uo pipefail
 SB="$HOME/sandbox"
-[[ -d "$SB" ]] || { echo "No sandbox. Run 'make start S=01-the-terminal' first."; exit 1; }
+[[ -d "$SB" ]] || { echo "No sandbox. Open this section in the Academy (./academy.sh) and press enter first."; exit 1; }
 
 pass=0; fail=0
 ok(){ printf '  ✅ %s\n' "$1"; pass=$((pass+1)); }

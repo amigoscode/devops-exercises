@@ -9,13 +9,10 @@ record your work as commits.
 
 ## How to use this set
 
-```bash
-make build                  # once
-make start  S=01-first-repo
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=01-first-repo
-make reset  S=01-first-repo
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Git & GitHub Fundamentals → Your First Repo** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 The grader inspects real git state (`git log`, `git status`), so you genuinely have
 to drive git.

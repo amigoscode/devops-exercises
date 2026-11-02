@@ -10,13 +10,10 @@ saved in `~/.bashrc`, not just typed once.
 
 ## How to use this set
 
-```bash
-# from the 03-linux-for-professionals/ folder
-make start  S=02-environment-variables
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=02-environment-variables
-make reset  S=02-environment-variables
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Linux for Professionals → Environment Variables** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 > Set something, then `source ~/.bashrc` (or open a new shell) to load it.
 

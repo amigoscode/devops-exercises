@@ -13,14 +13,10 @@ engineer from a beginner is **how fast they find the answer**: `man`, `--help`,
 
 ## How to use this set
 
-```bash
-# from the linux-fundamentals/ folder
-make build                          # once (rebuilds with man pages restored)
-make start  S=03-linux-commands     # pristine Ubuntu shell, sandbox seeded
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=03-linux-commands     # grades your work
-make reset  S=03-linux-commands     # fresh start
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Linux Fundamentals → Linux Commands** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 ---
 

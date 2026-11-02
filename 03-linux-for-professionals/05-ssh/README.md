@@ -10,12 +10,10 @@ get a key from AWS, so those steps need an account.
 
 ## How to use this set
 
-```bash
-make start  S=05-ssh
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=05-ssh
-make reset  S=05-ssh
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Linux for Professionals → SSH** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 ---
 
@@ -28,8 +26,9 @@ could connect with just `ssh myserver`.
 
 ## Tier 2 - Lock it down *(think: the permission SSH insists on)*
 
-**2.1 (graded)** SSH ignores a config that others can read. Set `~/.ssh/config` to the
-permissions SSH expects (owner read/write only).
+**2.1 (graded)** SSH refuses a config that other users can change, and the safe convention
+is owner-only. Set `~/.ssh/config` to the permissions SSH expects (owner
+read/write only).
 
 ## Tier 3 - Add a production host *(goal only)*
 

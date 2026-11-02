@@ -7,21 +7,21 @@ handling - and the grader **runs them** to check they actually work.
 This is the course that turns "someone who knows Linux commands" into "someone who
 automates Linux".
 
-> **Easiest way in:** run `./academy.sh` (Windows: `academy.cmd`) from the repo root.
-> It opens this course in a terminal app - lessons, one-key sandboxes, instant
-> grading and progress tracking. The commands below still work if you prefer them.
-
 ## Quick start
 
+From the repo root:
+
 ```bash
-make build                       # build the image once
-make start  S=01-bash-basics     # a clean ~/sandbox to write scripts in
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=01-bash-basics     # runs your scripts and grades them
-make reset  S=01-bash-basics     # fresh start
+./academy.sh        # macOS, Linux, WSL, Git Bash, Codespaces
+academy.cmd         # Windows
 ```
 
-Needs **Docker** and **make** (both provided in GitHub Codespaces).
+Pick **Shell Scripting**, choose a section and press `enter`: you get a fresh Ubuntu
+sandbox with the scenario already set up and the questions printed at the top.
+Inside it, `questions` shows them again, `check` grades your work, and `exit`
+takes you back with your progress saved.
+
+**Docker is the only thing you need installed.** (Codespaces works too - zero install.)
 
 ## Sections
 

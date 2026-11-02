@@ -3,7 +3,7 @@
 set -uo pipefail
 SB="$HOME/sandbox"
 VRC="$HOME/.vimrc"
-[[ -d "$SB" ]] || { echo "No sandbox. Run 'make start S=03-search-replace-and-vimrc' first."; exit 1; }
+[[ -d "$SB" ]] || { echo "No sandbox. Open this section in the Academy (./academy.sh) and press enter first."; exit 1; }
 
 pass=0; fail=0
 ok(){ printf '  ✅ %s\n' "$1"; pass=$((pass+1)); }

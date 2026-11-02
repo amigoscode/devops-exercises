@@ -34,8 +34,8 @@ echo "Tier 3 - Prove the whole system works"
 users_json=""; orders_json=""
 if [ -f "$CF" ]; then
   for _ in $(seq 1 12); do
-    users_json="$(docker compose -f "$CF" exec -T web wget -qO- http://127.0.0.1/api/users 2>/dev/null || true)"
-    orders_json="$(docker compose -f "$CF" exec -T web wget -qO- http://127.0.0.1/api/orders 2>/dev/null || true)"
+    users_json="$(docker compose -f "$CF" exec -T web wget -qO- http://127.0.0.1/api/users </dev/null 2>/dev/null || true)"
+    orders_json="$(docker compose -f "$CF" exec -T web wget -qO- http://127.0.0.1/api/orders </dev/null 2>/dev/null || true)"
     echo "$orders_json" | grep -q 'Alice' && break
     sleep 2
   done
@@ -43,7 +43,7 @@ fi
 if echo "$users_json" | grep -q 'Alice' && echo "$users_json" | grep -q 'Bob'; then
   ok "3.1 UI lists users (web -> users-service -> users-db)"
 else
-  no "3.1 bring the stack up so localhost:8080 lists the users"
+  no "3.1 bring the stack up so localhost:8087 lists the users"
 fi
 if echo "$orders_json" | grep -q 'Keyboard' \
    && echo "$orders_json" | grep -q 'Alice' && echo "$orders_json" | grep -q 'Bob' \

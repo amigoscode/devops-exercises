@@ -10,14 +10,10 @@ maths.
 
 ## How to use this set
 
-```bash
-# from the 04-shell-scripting/ folder
-make build                       # once
-make start  S=01-bash-basics     # shell with a clean ~/sandbox to write scripts in
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=01-bash-basics     # runs your scripts and grades them
-make reset  S=01-bash-basics     # fresh start
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Shell Scripting → Bash Basics** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 The grader **runs your scripts**, so they have to actually work.
 

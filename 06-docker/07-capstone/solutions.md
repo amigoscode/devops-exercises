@@ -47,7 +47,7 @@ services:
   web:
     build: ./frontend
     ports:
-      - "8080:80"
+      - "8086:80"
     depends_on:
       - api
 
@@ -63,14 +63,16 @@ docker compose ps
 
 ## Tier 3 - prove it and persist it
 ```bash
-curl localhost:8080/api/messages     # [{"id":1,"body":"Hello from Postgres"}]
-curl localhost:8080                   # the UI page (it fetches the message)
+curl localhost:8086/api/messages     # [{"id":1,"body":"Hello from Postgres"}]
+curl localhost:8086                   # the UI page (it fetches the message)
 
 # Persistence: data lives in the dbdata volume, not the container.
 docker compose down          # stops + removes containers/network, KEEPS the volume
 docker compose up -d         # data is still there
-docker compose down -v       # this time also delete the volume -> next up reseeds
 ```
+Leave the stack up while you `verify`. Afterwards, `docker compose down -v` also
+deletes the volume (the next `up` reseeds) - run it before `verify` and Tiers 2 and 3
+fail.
 
 The `db` healthcheck + `depends_on: { condition: service_healthy }` (already in the
 compose above) make `api` wait until Postgres is actually accepting connections, so it
@@ -88,6 +90,6 @@ does not crash-loop on startup.
 4. Plain `depends_on` only waits for the container to **start**, not for Postgres to be
    **ready to accept connections**. A healthcheck condition makes `api` wait for the DB
    to actually be up, avoiding startup crashes.
-5. Only `web` publishes a port (`8080:80`), so only it is reachable from your browser.
+5. Only `web` publishes a port (`8086:80`), so only it is reachable from your browser.
    `api` and `db` have no published ports - they are reachable only from inside the
    Compose network, by service name.

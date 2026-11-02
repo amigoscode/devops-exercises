@@ -13,14 +13,10 @@ respect the single most destructive command in Linux.
 
 ## How to use this set
 
-```bash
-# from the linux-fundamentals/ folder
-make build                              # once
-make start  S=06-working-with-directories
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=06-working-with-directories
-make reset  S=06-working-with-directories
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Linux Fundamentals → Working with Directories** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 ---
 

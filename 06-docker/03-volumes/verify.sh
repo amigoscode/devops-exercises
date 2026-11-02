@@ -18,7 +18,7 @@ if running bindweb; then
      && echo "$content" | grep -q 'bind-mounted'; then bind_ok=true; fi
 fi
 $bind_ok && ok "1.1 'bindweb' serves the site via a bind mount on the web root" \
-         || no "1.1 run nginx:alpine as 'bindweb', -p 8080:80, bind-mount site/ to /usr/share/nginx/html"
+         || no "1.1 run nginx:alpine as 'bindweb', -p 8084:80, bind-mount site/ to /usr/share/nginx/html"
 
 echo "Tier 2 - Named volumes"
 if docker volume inspect appdata >/dev/null 2>&1; then ok "2.1 named volume 'appdata' exists"

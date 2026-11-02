@@ -20,13 +20,10 @@ func (m *model) View() string {
 			sBrand.Render("AMIGOSCODE")+"\n"+sMuted.Render("Make the terminal a little bigger (60×18+)"))
 	}
 	var v string
-	switch m.scr {
-	case scrHome:
-		v = m.viewHome()
-	case scrCourse:
-		v = m.viewCourse()
-	case scrSection:
-		v = m.viewSection()
+	if m.scr == scrBrowse {
+		v = m.viewBrowse()
+	} else {
+		v = m.viewExercise()
 	}
 	v = fit(v, m.w, m.h)
 	if m.help {
@@ -59,8 +56,7 @@ func (m *model) topBar(crumbs ...string) string {
 }
 
 func (m *model) footer(hints ...string) string {
-	line := margin + strings.Join(hints, "   ")
-	return truncateANSI(line, m.w)
+	return truncateANSI(margin+strings.Join(hints, "   "), m.w)
 }
 
 func (m *model) statusLine(idle string) string {
@@ -75,424 +71,328 @@ func (m *model) statusLine(idle string) string {
 	return margin + idle
 }
 
-// ---- home -----------------------------------------------------------------------
+// box draws a rounded panel with a label in its top border. Focused panels are violet.
+func box(content, label string, w, h int, focused bool) string {
+	st, edge := sPanel, cBorder
+	if focused {
+		st, edge = sPanelFocus, cViolet5
+	}
+	inner := clip(content, w-4, h-2)
+	b := st.Width(w - 2).Height(h - 2).MaxHeight(h).Render(inner)
+	if label != "" {
+		b = labelBorder(b, label, edge, focused)
+	}
+	return b
+}
 
-func (m *model) viewHome() string {
-	var b []string
-	W := m.w
-	b = append(b, "")
+// ---- browse ---------------------------------------------------------------------
+
+func (m *model) viewBrowse() string {
+	W, H := m.w, m.h
+	var top []string
 	logo := strings.Split(Logo(), "\n")
-	b = append(b, spread(margin+logo[0], m.dockerBadge()+margin, W))
-	b = append(b, margin+logo[1]+"  "+sBold.Render("Academy"))
-	b = append(b, margin+sMuted.Render("Hands-on, auto-graded exercises · from your first command to shipping containers"))
-	b = append(b, "")
+	top = append(top, "", spread(margin+logo[0], m.dockerBadge()+margin, W))
+	top = append(top, margin+logo[1]+"  "+sBold.Render("Academy"))
+	top = append(top, margin+sMuted.Render("Hands-on, auto-graded exercises · Linux, Git, Docker and SQL, in real sandboxes"), "")
 
-	// Progress card
+	// progress + continue
 	done, total := 0, 0
 	for _, c := range m.courses {
 		d, t := m.courseCounts(c)
 		done, total = done+d, total+t
 	}
-	cardW := min(W-4, 112)
-	inner := cardW - 4
+	cardW := min(W-4, 120)
 	pct := 0
 	if total > 0 {
 		pct = done * 100 / total
 	}
-	stat := sBold.Render(fmt.Sprintf("%d/%d", done, total)) + sMuted.Render(" sections  ") + sBrand.Render(fmt.Sprintf("%d%%", pct))
-	barW := inner - lipgloss.Width(stat) - 2
-	card := []string{
-		sFaint.Render("YOUR PROGRESS"),
-		Bar(done, total, barW) + "  " + stat,
-	}
+	stat := sBold.Render(fmt.Sprintf("%d/%d", done, total)) + sMuted.Render(" sections done  ") + sBrand.Render(fmt.Sprintf("%d%%", pct))
+	line1 := Bar(done, total, cardW-8-lipgloss.Width(stat)) + "  " + stat
+	line2 := sGreen.Render("★ Every section complete. Time to build something real.")
 	if s := m.continueTarget(); s != nil {
 		label := "Start here"
-		if m.prog.Peek(s.Key()).Status() != NotStarted || done > 0 {
+		if done > 0 || m.anyProgress() {
 			label = "Continue"
 		}
-		card = append(card, spread(sBrand.Render("▶ "+label)+"  "+sText.Render(s.Course.Title)+sFaint.Render(" › ")+sBold.Render(s.Num+" "+s.Title), keyHint("c", "jump in"), inner))
-	} else {
-		card = append(card, sGreen.Render("★ Every section complete. You did it - time to build something real."))
+		line2 = spread(sBrand.Render("▶ "+label)+"  "+sText.Render(s.Course.Title)+sFaint.Render(" › ")+sBold.Render(s.Num+" "+s.Title),
+			keyHint("c", "jump in"), cardW-4)
 	}
-	b = append(b, indent(sPanel.Width(cardW-2).Render(strings.Join(card, "\n")), margin))
-	b = append(b, "")
+	top = append(top, indent(box(line1+"\n"+line2, "Your progress", cardW, 4, false), margin), "")
 
-	// Courses list (+ detail on wide screens)
-	listW := cardW
-	showDetail := W >= 104
-	if showDetail {
-		listW = min(62, cardW/2+6)
+	// how-it-works strip, only when there is room
+	var strip []string
+	if H >= 34 {
+		step := func(n, txt string) string { return sPill.Render(n) + " " + sText.Render(txt) }
+		arrow := sFaint.Render("  ─▶  ")
+		strip = []string{"", margin + step("1", "Pick a section") + arrow + step("2", "Read the questions") + arrow +
+			step("3", "enter: do them in a real sandbox") + arrow + step("4", "exit: checked instantly")}
 	}
+
+	// columns
+	topLines := strings.Count(strings.Join(top, "\n"), "\n") + 1
+	colH := max(H-topLines-len(strip)-2, 6)
+	c := m.courses[m.courseIx]
+	var cols string
+	if W >= 96 {
+		// wide enough for the longest course name (marker, number, count, borders),
+		// but leaving the section list most of the screen
+		need := 0
+		for _, c := range m.courses {
+			need = max(need, lipgloss.Width(c.Title)+18)
+		}
+		cw := min(max(cardW/3+4, need), cardW*2/5+4)
+		sw := cardW - cw - 1
+		cols = lipgloss.JoinHorizontal(lipgloss.Top,
+			box(m.courseList(cw-4), "Courses", cw, colH, m.col == 0), " ",
+			box(m.sectionList(c, sw-4, colH-2), c.Title, sw, colH, m.col == 1))
+	} else if m.col == 0 {
+		cols = box(m.courseList(cardW-4), "Courses", cardW, colH, true)
+	} else {
+		cols = box(m.sectionList(c, cardW-4, colH-2), c.Title, cardW, colH, true)
+	}
+
+	body := strings.Join(top, "\n") + "\n" + indent(cols, margin) + strings.Join(strip, "\n")
+	var idle string
+	var hints []string
+	if m.col == 0 {
+		idle = sMuted.Render("Choose a course, then press ") + sBold.Render("→") + sMuted.Render(" to see its sections.")
+		hints = []string{keyHint("↑↓", "choose course"), keyHint("→ / enter", "see sections"), keyHint("c", "continue"), keyHint("?", "help"), keyHint("q", "quit")}
+	} else {
+		s := c.Sections[m.sectionIx]
+		idle = sMuted.Render("Press ") + sBold.Render("enter") + sMuted.Render(" to start ") + sText.Render(s.Num+" "+s.Title)
+		hints = []string{keyHint("↑↓", "choose section"), keyHint("enter", "start"), keyHint("← / esc", "courses"), keyHint("c", "continue"), keyHint("?", "help"), keyHint("q", "quit")}
+	}
+	return stick(body, m.statusLine(idle)+"\n"+m.footer(hints...), H)
+}
+
+func (m *model) courseList(w int) string {
 	var rows []string
-	rows = append(rows, sFaint.Render("COURSES"))
 	for i, c := range m.courses {
 		d, t := m.courseCounts(c)
 		sel := i == m.courseIx
-		marker := "  "
-		title := sText.Render(c.Title)
-		num := sFaint.Render(c.Num)
+		marker, num, title := "  ", sFaint.Render(c.Num), sText.Render(c.Title)
 		if sel {
-			marker = sBrand.Render("▌ ")
-			title = sBold.Render(c.Title)
-			num = sBrand.Render(c.Num)
+			marker, num, title = sBrand.Render("▶ "), sBrand.Render(c.Num), sBold.Render(c.Title)
 		}
 		count := sMuted.Render(fmt.Sprintf("%d/%d", d, t))
 		if d == t {
-			count = sGreen.Render(fmt.Sprintf("%d/%d ✔", d, t))
+			count = sGreen.Render("✔ done")
 		}
-		nameW := listW - 4 - 4 - 14 - 8
-		row := marker + num + "  " + padRight(truncate(title, nameW), nameW) + " " + Bar(d, t, 12) + "  " + count
-		rows = append(rows, row)
+		left := marker + num + "  " + title
+		rows = append(rows, spread(truncateANSI(left, w-lipgloss.Width(count)-2), count, w))
 	}
-	list := strings.Join(rows, "\n")
-
-	if showDetail {
-		detW := cardW - listW - 2
-		detail := m.courseDetail(m.courses[m.courseIx], detW-4)
-		box := sPanelFocus.Width(detW - 2).Render(detail)
-		list = lipgloss.JoinHorizontal(lipgloss.Top, lipgloss.NewStyle().Width(listW).Render(list), "  ", box)
-	}
-	b = append(b, indent(list, margin))
-	if m.h >= 36 {
-		step := func(n, txt string) string { return sPill.Render(n) + " " + sText.Render(txt) }
-		arrow := sFaint.Render("  ──▶  ")
-		b = append(b, "", margin+sFaint.Render("HOW IT WORKS"),
-			margin+step("1", "Read the lesson")+arrow+step("2", "enter opens a real sandbox")+arrow+step("3", "Do the tasks")+arrow+step("4", "exit · graded instantly"))
-	}
-
-	body := strings.Join(b, "\n")
-	foot := []string{
-		m.statusLine(sMuted.Render("Pick a course, or press ") + sBold.Render("c") + sMuted.Render(" to carry on where you left off.")),
-		m.footer(keyHint("↑↓", "move"), keyHint("enter", "open"), keyHint("c", "continue"), keyHint("?", "help"), keyHint("q", "quit")),
-	}
-	return stick(body, strings.Join(foot, "\n"), m.h)
+	return strings.Join(rows, "\n")
 }
 
-func (m *model) courseDetail(c *Course, w int) string {
-	env := sCyan.Render("◆ Runs in a disposable Ubuntu sandbox")
-	if c.Kind == KindHost {
-		env = sCyan.Render("◆ Runs on your own Docker - real containers")
-	}
-	d, t := m.courseCounts(c)
-	lines := []string{
-		sBold.Render(c.Title),
-		env,
-		"",
-		lipgloss.NewStyle().Foreground(cMuted).Width(w).Render(truncate(c.Blurb, w*3)),
-		"",
-		sFaint.Render(fmt.Sprintf("SECTIONS  %d/%d", d, t)),
-	}
-	for _, s := range c.Sections {
-		st := m.prog.Peek(s.Key()).Status()
-		lines = append(lines, statusIcon(st)+" "+sFaint.Render(s.Num)+" "+truncate(sText.Render(s.Title), w-6))
-	}
-	return strings.Join(lines, "\n")
-}
-
-// ---- course ---------------------------------------------------------------------
-
-func (m *model) viewCourse() string {
-	c := m.courses[m.courseIx]
-	W := m.w
-	var b []string
-	b = append(b, m.topBar(c.Title), "")
-	d, t := m.courseCounts(c)
-	stat := sBold.Render(fmt.Sprintf("%d/%d", d, t)) + sMuted.Render(" sections complete")
-	b = append(b, margin+sPill.Render(c.Num)+" "+sBold.Render(c.Title)+"   "+Bar(d, t, 24)+"  "+stat, "")
-
-	listW := min(W-4, 54)
-	wide := W >= 100
+func (m *model) sectionList(c *Course, w, h int) string {
 	var rows []string
 	for i, s := range c.Sections {
 		sp := m.prog.Peek(s.Key())
 		sel := i == m.sectionIx
-		marker := "  "
-		title := sText.Render(s.Title)
+		marker, title := "  ", sText.Render(s.Title)
 		if sel {
-			marker = sBrand.Render("▌ ")
-			title = sBold.Render(s.Title)
+			marker, title = "  ", sBold.Render(s.Title)
+			if m.col == 1 {
+				marker = sBrand.Render("▶ ")
+			}
 		}
-		score := ""
-		if sp.PassCount+sp.FailCount > 0 {
-			score = fmt.Sprintf("%d/%d", sp.PassCount, sp.PassCount+sp.FailCount)
+		right := ""
+		d, t := m.questionCounts(s)
+		switch {
+		case !s.Graded():
+			right = sAmber.Render("reviewed")
+		case sp.Status() == Done:
+			right = sGreen.Render("✔ done")
+		case t > 0:
+			right = sMuted.Render(fmt.Sprintf("%d/%d", d, t))
 		}
-		if !s.Graded() {
-			score = "review"
+		if st := m.containerState(s); st == "running" {
+			right = sGreen.Render("● ") + right
 		}
-		live := " "
-		if st := m.containerState(s); st == "running" || st == "seeded" {
-			live = sGreen.Render("•")
-		}
-		nameW := listW - 4 - 3 - 3 - 9
-		rows = append(rows, marker+statusIcon(sp.Status())+" "+sFaint.Render(s.Num)+" "+padRight(truncate(title, nameW), nameW)+live+" "+sMuted.Render(fmt.Sprintf("%6s", score)))
+		left := marker + statusIcon(sp.Status()) + " " + sFaint.Render(s.Num) + "  " + title
+		rows = append(rows, spread(truncateANSI(left, w-12), right, w))
 	}
-	listBox := sPanel.Width(listW - 2).Render(sFaint.Render("SECTIONS") + "\n" + strings.Join(rows, "\n"))
-	content := listBox
-	if wide {
-		detW := min(W-listW-6, 76)
-		content = lipgloss.JoinHorizontal(lipgloss.Top, listBox, "  ", sPanelFocus.Width(detW-2).Render(m.sectionPreview(c.Sections[m.sectionIx], detW-4)))
-	}
-	b = append(b, indent(content, margin))
 
+	// preview of the highlighted section underneath
 	s := c.Sections[m.sectionIx]
-	idle := sMuted.Render("Press ") + sBold.Render("enter") + sMuted.Render(" to open ") + sText.Render(s.Num+" "+s.Title)
-	foot := []string{
-		m.statusLine(idle),
-		m.footer(keyHint("↑↓", "move"), keyHint("enter", "open"), keyHint("esc", "back"), keyHint("?", "help"), keyHint("q", "quit")),
+	env := sCyan.Render("◆ Ubuntu sandbox")
+	if c.PSQL {
+		env = sCyan.Render("◆ PostgreSQL sandbox")
 	}
-	return stick(strings.Join(b, "\n"), strings.Join(foot, "\n"), m.h)
-}
-
-func (m *model) sectionPreview(s *Section, w int) string {
-	sp := m.prog.Peek(s.Key())
-	lines := []string{sBold.Render(s.Num + " · " + s.Title)}
-	if s.MapsTo != "" {
-		lines = append(lines, sFaint.Render(truncate(s.MapsTo, w)))
+	if c.Kind == KindHost {
+		env = sCyan.Render("◆ Your own Docker")
 	}
-	lines = append(lines, "", lipgloss.NewStyle().Foreground(cMuted).Width(w).Render(truncate(s.Blurb, w*3)), "")
-	if !s.Graded() {
-		lines = append(lines, sAmber.Render("◆ Open-ended capstone - reviewed by a human in the Academy"), "")
-	}
-	tier := -1
+	graded, drills := 0, 0
 	for _, t := range s.Tasks {
-		if t.Tier != tier {
-			tier = t.Tier
-			lines = append(lines, tierLabel(s, tier))
+		if t.Kind == "drill" {
+			drills++
+		} else {
+			graded++
 		}
-		lines = append(lines, taskLine(t, sp, w, false))
 	}
-	if sp.LastVerified != "" {
-		lines = append(lines, "", sFaint.Render("last checked "+ago(sp.LastVerified)))
+	facts := fmt.Sprintf("%d questions", graded)
+	if drills > 0 {
+		facts += fmt.Sprintf(" · %d drills", drills)
 	}
-	return strings.Join(lines, "\n")
+	if !s.Graded() {
+		facts = "open-ended · reviewed by a human"
+	}
+	preview := []string{"", sFaint.Render(strings.Repeat("─", w)), sBold.Render(s.Num+" · "+s.Title) + "  " + sMuted.Render(facts) + "  " + env}
+	room := h - len(rows) - len(preview)
+	if room > 0 {
+		blurb := lipgloss.NewStyle().Foreground(cMuted).Width(w).Render(s.Blurb)
+		bl := strings.Split(blurb, "\n")
+		if len(bl) > room {
+			bl = bl[:room]
+			bl[room-1] = truncateANSI(bl[room-1]+" …", w)
+		}
+		preview = append(preview, bl...)
+	}
+	return strings.Join(append(rows, preview...), "\n")
 }
 
-// ---- section --------------------------------------------------------------------
+// ---- exercise -------------------------------------------------------------------
 
-func (m *model) viewSection() string {
+func (m *model) viewExercise() string {
 	s := m.sec
 	W, H := m.w, m.h
 	sp := m.prog.Peek(s.Key())
+	qs := m.questions()
+	d, t := m.questionCounts(s)
 
 	// title row
 	pill := sPillDim.Render("not started")
 	switch {
+	case !s.Graded():
+		pill = lipgloss.NewStyle().Foreground(lipgloss.Color("#2A1A00")).Background(cAmber).Bold(true).Padding(0, 1).Render("reviewed by a human")
 	case sp.Status() == Done:
 		pill = lipgloss.NewStyle().Foreground(lipgloss.Color("#06281C")).Background(cGreen).Bold(true).Padding(0, 1).Render("✔ complete")
-	case sp.PassCount+sp.FailCount > 0:
-		pill = lipgloss.NewStyle().Foreground(lipgloss.Color("#2A1A00")).Background(cAmber).Bold(true).Padding(0, 1).Render(fmt.Sprintf("%d/%d passing", sp.PassCount, sp.PassCount+sp.FailCount))
-	case sp.Started:
+	case sp.Started || d > 0:
 		pill = lipgloss.NewStyle().Foreground(cText).Background(cRaised).Padding(0, 1).Render("in progress")
 	}
 	sandbox := ""
 	switch m.containerState(s) {
-	case "running", "seeded":
-		sandbox = sGreen.Render("● sandbox up")
+	case "running":
+		sandbox = sGreen.Render("● sandbox ready") + "  "
 	case "exited":
-		sandbox = sAmber.Render("● sandbox paused")
+		sandbox = sAmber.Render("● sandbox paused") + "  "
+	}
+	progress := ""
+	if t > 0 {
+		progress = Bar(d, t, 14) + " " + sBold.Render(fmt.Sprintf("%d/%d", d, t)) + sMuted.Render(" done") + "   "
 	}
 	title := margin + sPill.Render(s.Num) + " " + sBold.Render(s.Title)
-	if s.MapsTo != "" && W > 110 {
-		title += "  " + sFaint.Render(truncate(s.MapsTo, W-60-lipgloss.Width(s.Title)))
-	}
-	titleRow := spread(title, sandbox+"  "+pill+margin, W)
-
-	// tabs
-	var tabs []string
-	for i, t := range m.tabs() {
-		name := fmt.Sprintf("%d %s", i+1, tabNames[t])
-		if t == tabSolution && !m.unlocked[s.Key()] {
-			name += " ·locked"
-		}
-		if t == tabResults && sp.LastOutput == "" && m.lastErr[s.Key()] == "" {
-			name += " ·none yet"
-		}
-		if t == m.tab {
-			tabs = append(tabs, sPill.Render(name))
-		} else {
-			tabs = append(tabs, sPillDim.Render(name))
+	right := sandbox + progress + pill + margin
+	if s.MapsTo != "" {
+		room := W - lipgloss.Width(title) - lipgloss.Width(right) - 4
+		if room > 20 {
+			title += "  " + sFaint.Render(truncate(s.MapsTo, room))
 		}
 	}
-	tabRow := margin + strings.Join(tabs, " ")
+	titleRow := spread(title, right, W)
 
-	// panels
-	panelH := H - 8
-	taskW := 0
-	if m.wide() {
-		taskW = min(50, W/3)
+	// question list on top
+	boxW := W - 4
+	inner := boxW - 4
+	rows, selRow := m.questionRows(qs, inner)
+	avail := H - 6 // topbar, gap, title, status, footer, + 1 spare
+	maxQ := max(3, avail*45/100)
+	qh := min(len(rows), maxQ)
+	if qh < 1 {
+		qh = 1
 	}
-	leftW := W - 4 - taskW
-	if taskW > 0 {
-		leftW -= 1
+	start := 0
+	if selRow >= qh {
+		start = selRow - qh + 1
 	}
-	m.syncViewport(leftW-4, panelH-2)
+	if start+qh > len(rows) {
+		start = max(len(rows)-qh, 0)
+	}
+	visible := rows[start:min(start+qh, len(rows))]
+	qLabel := fmt.Sprintf("Questions  %d/%d", d, t)
+	if len(rows) > qh {
+		qLabel += fmt.Sprintf("  ·  %d-%d of %d lines", start+1, start+len(visible), len(rows))
+	}
+	if t == 0 {
+		qLabel = "Questions"
+	}
+	qBox := box(strings.Join(visible, "\n"), qLabel, boxW, qh+2, true)
 
-	left := sPanel
-	if !m.focusTasks || !m.wide() {
-		left = sPanelFocus
-	}
-	scroll := ""
+	// the selected question (or lesson / solution) underneath
+	detailH := avail - (qh + 2)
+	m.syncViewport(inner, detailH-2)
+	label := m.paneLabel(qs)
 	if m.vp.TotalLineCount() > m.vp.Height {
-		scroll = fmt.Sprintf(" %d%%", int(m.vp.ScrollPercent()*100))
+		label += fmt.Sprintf("  ·  %d%%  PgUp/PgDn", int(m.vp.ScrollPercent()*100))
 	}
-	leftBox := left.Width(leftW - 2).Height(panelH - 2).MaxHeight(panelH).Render(clip(m.vp.View(), m.vp.Width, m.vp.Height))
-	edge := cBorder
-	if !m.focusTasks || !m.wide() {
-		edge = cViolet5
-	}
-	leftBox = labelBorder(leftBox, tabNames[m.tab]+scroll, edge)
-	panels := leftBox
-	if taskW > 0 {
-		box := sPanel
-		if m.focusTasks {
-			box = sPanelFocus
-		}
-		tb := box.Width(taskW - 2).Height(panelH - 2).MaxHeight(panelH).Render(clip(m.taskPanel(taskW-4, panelH-2, m.focusTasks), taskW-4, panelH-2))
-		panels = lipgloss.JoinHorizontal(lipgloss.Top, leftBox, " ", tb)
-	}
+	dBox := box(m.vp.View(), label, boxW, detailH, false)
 
-	idle := m.sectionIdle(sp)
-	hints := []string{keyHint("enter", "open sandbox"), keyHint("v", "check"), keyHint("tab", "switch view")}
-	if m.wide() {
-		hints = append(hints, keyHint("→", "tasks"))
-	}
-	hints = append(hints, keyHint("s", "solution"), keyHint("r", "reset"), keyHint("n/p", "next/prev"), keyHint("esc", "back"), keyHint("?", "more"))
 	return strings.Join([]string{
 		m.topBar(s.Course.Title, s.Num+" "+s.Title),
 		"",
 		titleRow,
-		tabRow,
-		indent(panels, margin),
-		m.statusLine(idle),
-		m.footer(hints...),
+		indent(qBox, margin),
+		indent(dBox, margin),
+		m.statusLine(m.exerciseIdle(sp)),
+		m.footer(m.exerciseHints(qs)...),
 	}, "\n")
 }
 
-func (m *model) sectionIdle(sp SectionProgress) string {
-	switch {
-	case !m.sec.Graded():
-		return sMuted.Render("Open-ended capstone: read the brief, build it, then submit it in the Academy for review.")
-	case sp.Status() == Done:
-		return sGreen.Render("✔ Section complete. ") + sMuted.Render("Press ") + sBold.Render("n") + sMuted.Render(" for the next one.")
-	case sp.Started:
-		return sMuted.Render("Press ") + sBold.Render("enter") + sMuted.Render(" to jump back into your sandbox - you're graded automatically when you exit.")
-	}
-	return sBrand.Render("▶ ") + sMuted.Render("Read the lesson, then press ") + sBold.Render("enter") + sMuted.Render(" to open your sandbox and start.")
-}
-
-func (m *model) syncViewport(w, h int) {
-	w, h = max(w, 10), max(h, 3)
-	key := fmt.Sprintf("%s|%d|%d|%d|%d|%v", m.sec.Key(), m.tab, w, h, m.taskIx, m.prog.Peek(m.sec.Key()).LastVerified)
-	m.vp.Width, m.vp.Height = w, h
-	if key == m.vpKey {
-		return
-	}
-	keepY := m.vp.YOffset
-	sameDoc := strings.HasPrefix(m.vpKey, fmt.Sprintf("%s|%d|", m.sec.Key(), m.tab))
-	m.vpKey = key
-	var content string
-	switch m.tab {
-	case tabLesson:
-		content = RenderMarkdown(m.sec.Key()+"#lesson", m.sec.Lesson, w)
-	case tabSolution:
-		content = RenderMarkdown(m.sec.Key()+"#solution", readFile(m.sec.Solutions), w)
-	case tabResults:
-		content = m.resultsView(w)
-	case tabTasks:
-		content = m.taskPanel(w, 1000, true)
-	}
-	m.vp.SetContent(content)
-	if sameDoc {
-		m.vp.SetYOffset(keepY)
-	}
-}
-
-func (m *model) resultsView(w int) string {
-	s := m.sec
-	if e := m.lastErr[s.Key()]; e != "" {
-		return sRed.Render("Something went wrong") + "\n\n" + lipgloss.NewStyle().Foreground(cMuted).Width(w).Render(e) +
-			"\n\n" + sMuted.Render("Is Docker running? Try again, or press r to reset the section.")
-	}
-	sp := m.prog.Peek(s.Key())
-	if sp.LastOutput == "" {
-		return "\n" + sBold.Render("No check yet.") + "\n\n" +
-			sMuted.Render("Do the tasks in your sandbox, then press ") + sBold.Render("v") + sMuted.Render(" - or just exit the sandbox,\nit's checked automatically.")
-	}
-	res := ParseResult(sp.LastOutput)
-	var head string
-	if res.Fail == 0 && res.Pass > 0 {
-		head = sGreen.Render("✔ All checks passing") + sMuted.Render(" - nice work.")
-	} else {
-		head = sBold.Render(fmt.Sprintf("%d of %d checks passing", res.Pass, res.Pass+res.Fail)) + sMuted.Render(" - fix the ✘ lines and press v again.")
-	}
-	lines := []string{head, Bar(res.Pass, res.Pass+res.Fail, min(w, 60)), sFaint.Render("checked " + ago(sp.LastVerified)), ""}
-	wrap := lipgloss.NewStyle().Width(w - 4)
-	for _, raw := range strings.Split(StripANSI(sp.LastOutput), "\n") {
-		t := strings.TrimSpace(raw)
-		switch {
-		case t == "":
-			lines = append(lines, "")
-		case strings.HasPrefix(t, "✅"):
-			lines = append(lines, hang(sGreen.Render("✔ "), wrap.Foreground(cText).Render(strings.TrimSpace(strings.TrimPrefix(t, "✅")))))
-		case strings.HasPrefix(t, "❌"):
-			lines = append(lines, hang(sRed.Render("✘ "), wrap.Foreground(cViolet1).Render(strings.TrimSpace(strings.TrimPrefix(t, "❌")))))
-		case strings.HasPrefix(t, "Tier"), strings.HasPrefix(t, "Mission"):
-			lines = append(lines, sBrand.Render(t))
-		case strings.HasPrefix(t, "Score:"):
-			lines = append(lines, sBold.Render(t))
-		default:
-			lines = append(lines, wrap.Foreground(cMuted).Render(t))
-		}
-	}
-	return strings.Join(lines, "\n")
-}
-
-func (m *model) taskPanel(w, h int, focused bool) string {
+// questionRows renders the list with tier headings and returns the selected row index.
+func (m *model) questionRows(qs []Task, w int) ([]string, int) {
 	s := m.sec
 	sp := m.prog.Peek(s.Key())
-	tasks := m.visibleTasks()
-	graded, passed := 0, 0
-	for _, t := range tasks {
-		if t.Kind == "drill" {
-			continue
+	var rows []string
+	sel := 0
+	if len(qs) == 0 {
+		msg := "Open-ended capstone - there is no checklist. Read the brief below, build it, and submit it in the Academy."
+		if s.Graded() {
+			msg = "The questions for this section are in the lesson below. Press v after you've worked through it."
 		}
-		graded++
-		if sp.TaskState(t.ID) == 1 {
-			passed++
-		}
-	}
-	head := spread(sFaint.Render("TASKS"), sMuted.Render(fmt.Sprintf("%d/%d", passed, graded)), w)
-	lines := []string{head, Bar(passed, graded, w), ""}
-	if !s.Graded() {
-		lines = append(lines, lipgloss.NewStyle().Foreground(cAmber).Width(w).Render("Open-ended capstone - a human reviews your design in the Academy."), "")
-		if s.SelfCheck != "" {
-			lines = append(lines, lipgloss.NewStyle().Foreground(cMuted).Width(w).Render("Press v to run the optional self-check against your running stack."), "")
-		}
-	}
-	if len(tasks) == 0 && s.Graded() {
-		lines = append(lines, sMuted.Render("Press v to see the checks."))
+		return []string{lipgloss.NewStyle().Foreground(cMuted).Width(w).Render(msg)}, 0
 	}
 	tier := -1
-	for i, t := range tasks {
-		if t.Tier != tier && t.Tier > 0 {
-			tier = t.Tier
-			if i > 0 {
-				lines = append(lines, "")
-			}
-			lines = append(lines, tierLabel(s, tier))
+	for i, q := range qs {
+		if q.Tier != tier && q.Tier > 0 {
+			tier = q.Tier
+			rows = append(rows, tierLabel(s, tier))
 		}
-		sel := focused && i == m.taskIx
-		lines = append(lines, taskLine(t, sp, w, sel))
-		if sel {
-			if t.Kind == "drill" {
-				lines = append(lines, indent(sFaint.Render("space: mark as practised"), "    "))
-			}
+		if i == m.q {
+			sel = len(rows)
+		}
+		rows = append(rows, questionLine(q, sp, w, i == m.q))
+	}
+	return rows, sel
+}
+
+func questionLine(q Task, sp SectionProgress, w int, sel bool) string {
+	icon := sFaint.Render("○")
+	if q.Kind == "drill" {
+		icon = sFaint.Render("◇")
+		if sp.HasDrill(q.ID) {
+			icon = sViolet.Render("◆")
+		}
+	} else {
+		switch sp.TaskState(q.ID) {
+		case 1:
+			icon = sGreen.Render("✔")
+		case -1:
+			icon = sRed.Render("✘")
 		}
 	}
-	if len(lines) > h {
-		lines = append(lines[:h-1], sFaint.Render("…"))
+	marker := "  "
+	id := sFaint.Render(padRight(q.ID, 4))
+	text := sText.Render(q.Text)
+	if sel {
+		marker = sBrand.Render("▶ ")
+		id = sBrand.Render(padRight(q.ID, 4))
+		text = sBold.Render(q.Text)
 	}
-	return strings.Join(lines, "\n")
+	tag := ""
+	if q.Kind == "drill" {
+		tag = sFaint.Render("  drill")
+	}
+	return marker + icon + " " + id + " " + truncateANSI(text, w-9-lipgloss.Width(tag)) + tag
 }
 
 func tierLabel(s *Section, n int) string {
@@ -504,46 +404,237 @@ func tierLabel(s *Section, n int) string {
 	return sBrand.Render(fmt.Sprintf("TIER %d", n))
 }
 
-func taskLine(t Task, sp SectionProgress, w int, sel bool) string {
-	icon := sFaint.Render("○")
-	if t.Kind == "drill" {
-		icon = sFaint.Render("◇")
-		if sp.HasDrill(t.ID) {
-			icon = sViolet.Render("◆")
+func (m *model) paneLabel(qs []Task) string {
+	switch {
+	case m.pane == paneLesson || len(qs) == 0:
+		return "Full lesson"
+	case m.pane == paneSolution:
+		return "Solution"
+	}
+	q := qs[min(m.q, len(qs)-1)]
+	kind := "auto-checked"
+	if q.Kind == "drill" {
+		kind = "drill · self-checked"
+	}
+	return "Question " + q.ID + "  ·  " + kind
+}
+
+func (m *model) exerciseIdle(sp SectionProgress) string {
+	switch {
+	case !m.sec.Graded():
+		return sMuted.Render("Build it, then submit it in the Academy for review.")
+	case sp.Status() == Done:
+		return sGreen.Render("✔ Section complete. ") + sMuted.Render("Press ") + sBold.Render("n") + sMuted.Render(" for the next one.")
+	case sp.Started:
+		return sMuted.Render("Press ") + sBold.Render("enter") + sMuted.Render(" to go back into your sandbox. Type ") + sBold.Render("exit") + sMuted.Render(" there and your work is checked.")
+	}
+	return sBrand.Render("▶ ") + sMuted.Render("Read the questions, then press ") + sBold.Render("enter") + sMuted.Render(" to open your sandbox - they're printed there too.")
+}
+
+func (m *model) exerciseHints(qs []Task) []string {
+	h := []string{keyHint("↑↓", "question"), keyHint("enter", "open sandbox"), keyHint("v", "check")}
+	if m.q < len(qs) && qs[m.q].Kind == "drill" && m.pane == paneQuestion {
+		h = append(h, keyHint("space", "tick drill"))
+	}
+	if m.pane == paneLesson {
+		h = append(h, keyHint("l", "back to question"))
+	} else {
+		h = append(h, keyHint("l", "full lesson"))
+	}
+	if m.sec.Solutions != "" {
+		h = append(h, keyHint("s", "solution"))
+	}
+	return append(h, keyHint("esc", "back"), keyHint("?", "more"))
+}
+
+func (m *model) syncViewport(w, h int) {
+	w, h = max(w, 10), max(h, 1)
+	sp := m.prog.Peek(m.sec.Key())
+	key := fmt.Sprintf("%s|%d|%d|%d|%d|%s|%v|%s", m.sec.Key(), m.pane, w, h, m.q, sp.LastVerified, sp.Drills, m.lastErr[m.sec.Key()])
+	m.vp.Width, m.vp.Height = w, h
+	if key == m.vpKey {
+		return
+	}
+	m.vpKey = key
+	qs := m.questions()
+	var content string
+	switch {
+	case m.pane == paneSolution:
+		content = RenderMarkdown(m.sec.Key()+"#solution", readFile(m.sec.Solutions), w)
+	case m.pane == paneLesson || len(qs) == 0:
+		content = RenderMarkdown(m.sec.Key()+"#lesson", m.sec.Lesson, w)
+	default:
+		content = m.questionDetail(qs[min(m.q, len(qs)-1)], w)
+	}
+	if e := m.lastErr[m.sec.Key()]; e != "" {
+		content = sRed.Render("✘ Something went wrong") + "\n" + lipgloss.NewStyle().Foreground(cMuted).Width(w).Render(e) +
+			"\n" + sFaint.Render("Is Docker running? Try again, or press r to start the section over.") + "\n\n" + content
+	}
+	m.vp.SetContent(content)
+}
+
+// questionDetail: where you stand on this question, then the question itself.
+func (m *model) questionDetail(q Task, w int) string {
+	s := m.sec
+	sp := m.prog.Peek(s.Key())
+	wrap := lipgloss.NewStyle().Width(w - 4)
+	var out []string
+	rw := w
+
+	if q.Kind == "drill" {
+		if sp.HasDrill(q.ID) {
+			out = append(out, " "+sViolet.Render("◆ Practised")+sMuted.Render(" - nice. Press space to untick."))
+		} else {
+			out = append(out, " "+sFaint.Render("◇ Drill - nothing to grade. Practise it in your sandbox, then press space to tick it off."))
+		}
+	} else if c, ok := m.check(q.ID); ok {
+		if c.OK {
+			out = append(out, " "+sGreen.Render("✔ Done")+sMuted.Render(" - "+c.Text))
+		} else {
+			out = append(out, " "+sRed.Render("✘ Not done yet"), indent(wrap.Foreground(cViolet1).Render(c.Text), "   "))
 		}
 	} else {
-		switch sp.TaskState(t.ID) {
-		case 1:
-			icon = sGreen.Render("✔")
-		case -1:
-			icon = sRed.Render("✘")
+		out = append(out, " "+sFaint.Render("○ Not checked yet - do it in your sandbox, then type exit (or press v)."))
+	}
+
+	for _, t := range s.Tiers {
+		if t.N == q.Tier && t.Intro != "" {
+			out = append(out, "", trimBlank(RenderMarkdown(fmt.Sprintf("%s#tier%d", s.Key(), t.N), t.Intro, rw)))
 		}
 	}
-	id := sFaint.Render(padRight(t.ID, 4))
-	tag := ""
-	if t.Kind == "drill" {
-		tag = sFaint.Render(" drill")
+	out = append(out, "", trimBlank(RenderMarkdown(s.Key()+"#q"+q.ID, q.Detail, rw)))
+	return strings.Join(out, "\n")
+}
+
+// shellBanner is printed when the sandbox opens (and by `questions` inside it).
+func (m *model) shellBanner(s *Section) string {
+	sp := m.prog.Peek(s.Key())
+	w := min(max(m.w-6, 50), 100)
+	var b []string
+	logo := strings.Split(Logo(), "\n")
+	b = append(b, "", margin+logo[0], margin+logo[1]+"  "+sBold.Render("Academy"), "",
+		margin+sBold.Render(s.Course.Title+" › "+s.Num+" "+s.Title))
+	where := "an Ubuntu sandbox - your work lives in ~/sandbox"
+	if s.Course.PSQL {
+		where = "psql, connected to this section's database. Save a query with \\w 1.1.sql"
 	}
-	marker := " "
-	text := sText.Render(t.Title)
-	if sel {
-		marker = sBrand.Render("›")
-		text = sBold.Render(t.Title)
-		id = sBrand.Render(padRight(t.ID, 4))
+	if s.Course.Kind == KindHost {
+		where = "a terminal wired to your real Docker"
 	}
-	room := w - 2 - 2 - 5 - lipgloss.Width(tag)
-	if sel {
-		// the selected task expands to its full text
-		body := lipgloss.NewStyle().Foreground(cText).Bold(true).Width(w - 8).Render(t.Title)
-		rows := strings.Split(body, "\n")
-		rows[0] = marker + icon + " " + id + " " + rows[0]
-		for i := 1; i < len(rows); i++ {
-			rows[i] = strings.Repeat(" ", 8) + rows[i]
+	b = append(b, margin+sMuted.Render("You are in "+where+"."), "")
+	if len(s.Tasks) > 0 {
+		b = append(b, margin+sBrand.Render("YOUR QUESTIONS"))
+		tier := -1
+		for _, q := range s.Tasks {
+			if q.Tier != tier && q.Tier > 0 {
+				tier = q.Tier
+				b = append(b, "", margin+tierLabel(s, tier))
+				for _, t := range s.Tiers {
+					if t.N == tier && t.Intro != "" {
+						b = append(b, indent(lipgloss.NewStyle().Foreground(cMuted).Width(w-4).Render(strings.Trim(plain(unquote(t.Intro)), "_")), margin+"  "))
+					}
+				}
+			}
+			icon := "○"
+			switch {
+			case q.Kind == "drill" && sp.HasDrill(q.ID):
+				icon = sViolet.Render("◆")
+			case q.Kind == "drill":
+				icon = "◇"
+			case sp.TaskState(q.ID) == 1:
+				icon = sGreen.Render("✔")
+			}
+			var lines []string
+			for i, part := range detailParts(q.Detail) {
+				if part.code {
+					for _, cl := range strings.Split(part.text, "\n") {
+						lines = append(lines, sCyan.Render("  "+cl))
+					}
+					continue
+				}
+				text := part.text
+				if i == 0 && q.Kind == "drill" {
+					text += " (drill)"
+				}
+				lines = append(lines, strings.Split(lipgloss.NewStyle().Foreground(cText).Width(w-10).Render(text), "\n")...)
+			}
+			for i := range lines {
+				if i == 0 {
+					lines[i] = margin + "  " + icon + " " + sBrand.Render(padRight(q.ID, 4)) + " " + lines[i]
+				} else {
+					lines[i] = margin + "         " + lines[i]
+				}
+			}
+			b = append(b, lines...)
 		}
-		rows[len(rows)-1] += tag
-		return strings.Join(rows, "\n")
+		b = append(b, "")
 	}
-	return marker + icon + " " + id + " " + truncateANSI(text, room) + tag
+	qCmd, cCmd := "questions", "check"
+	if s.Course.PSQL {
+		qCmd, cCmd = ":questions", ":check"
+	}
+	b = append(b, margin+sFaint.Render(strings.Repeat("─", w)),
+		margin+sMuted.Render("Type ")+sBold.Render(qCmd)+sMuted.Render(" to see these again  ·  ")+
+			sBold.Render(cCmd)+sMuted.Render(" to check your work  ·  ")+
+			sBold.Render("exit")+sMuted.Render(" to go back (progress is saved)"), "", "")
+	return "\x1b[2J\x1b[H" + strings.Join(b, "\n")
+}
+
+type part struct {
+	text string
+	code bool
+}
+
+// detailParts turns a question's markdown into plain paragraphs and code blocks,
+// for printing in the sandbox where markdown isn't rendered.
+func detailParts(md string) []part {
+	var out []part
+	var buf []string
+	inCode := false
+	flush := func(code bool) {
+		t := strings.Join(buf, "\n")
+		if !code {
+			t = plain(unquote(t))
+		}
+		if strings.TrimSpace(t) != "" {
+			out = append(out, part{t, code})
+		}
+		buf = nil
+	}
+	for _, l := range strings.Split(md, "\n") {
+		if strings.HasPrefix(strings.TrimSpace(l), "```") {
+			flush(inCode)
+			inCode = !inCode
+			continue
+		}
+		if !inCode && strings.TrimSpace(l) == "" {
+			flush(false)
+			continue
+		}
+		buf = append(buf, l)
+	}
+	flush(inCode)
+	return out
+}
+
+// trimBlank drops leading/trailing lines that are empty or only padding.
+func trimBlank(s string) string {
+	lines := strings.Split(s, "\n")
+	for len(lines) > 0 && strings.TrimSpace(StripANSI(lines[0])) == "" {
+		lines = lines[1:]
+	}
+	for len(lines) > 0 && strings.TrimSpace(StripANSI(lines[len(lines)-1])) == "" {
+		lines = lines[:len(lines)-1]
+	}
+	return strings.Join(lines, "\n")
+}
+
+func unquote(md string) string {
+	lines := strings.Split(md, "\n")
+	for i, l := range lines {
+		lines[i] = strings.TrimPrefix(strings.TrimPrefix(l, ">"), " ")
+	}
+	return strings.Join(lines, "\n")
 }
 
 // ---- modals ---------------------------------------------------------------------
@@ -555,27 +646,31 @@ func (m *model) confirmView() string {
 }
 
 func (m *model) helpBox() string {
-	rows := [][2]string{
-		{"↑ ↓ / j k", "move, or scroll the lesson"},
-		{"enter", "open (a course, a section, your sandbox)"},
-		{"c", "continue where you left off (home)"},
-		{"v", "check your work (also runs when you exit the sandbox)"},
-		{"tab / 1-4", "switch Lesson · Tasks · Results · Solution"},
-		{"→ ←", "focus the task list / the lesson (wide screens)"},
-		{"space", "tick a self-checked drill"},
-		{"s", "show the solution (try first!)"},
-		{"r", "reset the section - fresh scenario"},
-		{"x", "remove the section's sandbox"},
-		{"n / p", "next / previous section"},
-		{"esc", "back"},
-		{"q", "quit - progress is saved in my-journey/progress.json"},
+	section := func(t string) string { return "\n" + sBrand.Render(t) }
+	row := func(k, d string) string { return sKey.Render(padRight(k, 11)) + "  " + sText.Render(d) }
+	lines := []string{
+		gradient("AMIGOSCODE", true) + sMuted.Render(" Academy · how to get around"),
+		section("EVERYWHERE"),
+		row("↑ ↓", "move"),
+		row("→ / enter", "go in"),
+		row("← / esc", "go back"),
+		row("q", "quit - progress is saved to my-journey/progress.json"),
+		section("BROWSING"),
+		row("c", "continue where you left off"),
+		section("IN AN EXERCISE"),
+		row("↑ ↓", "pick a question - its details show underneath"),
+		row("enter", "open your sandbox (the questions are printed there too)"),
+		row("check", "(inside the sandbox) check your work without leaving"),
+		row("exit", "(inside the sandbox) go back - your work is checked and saved"),
+		row("v", "check your work again"),
+		row("space", "tick off a drill you've practised"),
+		row("l", "show the full lesson"),
+		row("s", "show the solution (try first!)"),
+		row("PgUp PgDn", "scroll the panel underneath (or use the mouse)"),
+		row("n / p", "next / previous section"),
+		row("r / x", "start over / remove the sandbox"),
+		"", sFaint.Render("press any key"),
 	}
-	lines := []string{gradient("AMIGOSCODE", true) + sMuted.Render(" Academy · keys"), ""}
-	for _, r := range rows {
-		lines = append(lines, sKey.Render(padRight(r[0], 10))+"  "+sText.Render(r[1]))
-	}
-	lines = append(lines, "", sFaint.Render("How it works: read the lesson → enter opens a real sandbox →"),
-		sFaint.Render("do the tasks → exit → you're graded instantly. Repeat."), "", sFaint.Render("press any key"))
 	return modal.Render(strings.Join(lines, "\n"))
 }
 
@@ -600,20 +695,6 @@ func indent(s, pre string) string {
 	lines := strings.Split(s, "\n")
 	for i := range lines {
 		lines[i] = pre + lines[i]
-	}
-	return strings.Join(lines, "\n")
-}
-
-// hang prefixes the first line and aligns the rest under it.
-func hang(prefix, body string) string {
-	pad := strings.Repeat(" ", lipgloss.Width(prefix))
-	lines := strings.Split(body, "\n")
-	for i := range lines {
-		if i == 0 {
-			lines[i] = margin + prefix + lines[i]
-		} else {
-			lines[i] = margin + pad + lines[i]
-		}
 	}
 	return strings.Join(lines, "\n")
 }
@@ -688,19 +769,20 @@ func overlay(base, box string, w, h int) string {
 	return strings.Join(bl, "\n")
 }
 
-// labelBorder writes a label into a box's top border: ╭─ Lesson ──────╮
-func labelBorder(box, label string, edge lipgloss.TerminalColor) string {
-	lines := strings.SplitN(box, "\n", 2)
+// labelBorder writes a label into a box's top border: ╭─ Questions ──────╮
+func labelBorder(b, label string, edge lipgloss.TerminalColor, focused bool) string {
+	lines := strings.SplitN(b, "\n", 2)
 	if len(lines) < 2 {
-		return box
+		return b
 	}
 	w := lipgloss.Width(lines[0])
-	lab := " " + label + " "
-	if lipgloss.Width(lab)+4 > w {
-		return box
-	}
+	lab := " " + truncate(label, w-6) + " "
 	e := lipgloss.NewStyle().Foreground(edge)
-	top := e.Render("╭─") + sBrand.Render(lab) + e.Render(strings.Repeat("─", w-3-lipgloss.Width(lab))+"╮")
+	ls := sMuted
+	if focused {
+		ls = sBrand
+	}
+	top := e.Render("╭─") + ls.Render(lab) + e.Render(strings.Repeat("─", max(w-3-lipgloss.Width(lab), 0))+"╮")
 	return top + "\n" + lines[1]
 }
 

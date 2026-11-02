@@ -2,7 +2,7 @@
 # Runs INSIDE the container. Grades the Working with Directories exercises.
 set -uo pipefail
 SB="$HOME/sandbox"
-[[ -d "$SB" ]] || { echo "No sandbox. Run 'make start S=06-working-with-directories' first."; exit 1; }
+[[ -d "$SB" ]] || { echo "No sandbox. Open this section in the Academy (./academy.sh) and press enter first."; exit 1; }
 
 pass=0; fail=0
 ok(){ printf '  ✅ %s\n' "$1"; pass=$((pass+1)); }
@@ -40,10 +40,10 @@ fi
 
 echo "Tier 3 - Structure & archive a release"
 if [[ -d "$SB/release/v2/bin" && -d "$SB/release/v2/config" && -d "$SB/release/v2/logs" ]] \
-   && [[ -f "$SB/release/v2/VERSION" ]]; then
-  ok "3.1 built release/v2/{bin,config,logs} + a VERSION file"
+   && [[ -f "$SB/release/v2/VERSION" ]] && grep -qxF '2.0' "$SB/release/v2/VERSION"; then
+  ok "3.1 built release/v2/{bin,config,logs} + a VERSION file (2.0)"
 else
-  no "3.1 mkdir -p release/v2/bin, .../config, .../logs and add a VERSION file inside v2"
+  no "3.1 mkdir -p release/v2/bin, .../config, .../logs and add a VERSION file containing 2.0 inside v2"
 fi
 if [[ -f "$SB/release-v2.zip" ]] \
    && unzip -l "$SB/release-v2.zip" 2>/dev/null | grep -q 'VERSION' \

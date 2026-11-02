@@ -3,7 +3,7 @@ package main
 // The catalog is read straight from the repo on every launch, so adding a course
 // or a section is just adding a folder - the academy never needs to be edited.
 //
-//   NN-course/                 a course (Makefile => Ubuntu sandbox, runner.sh => host Docker)
+//   NN-course/                 a course (Dockerfile => Ubuntu sandbox, runner.sh => host Docker)
 //     README.md                "# Title - Hands-On Exercises"
 //     NN-section/
 //       README.md              tiers ("## Tier 1 - ...") and tasks ("**1.1 (graded)** ...")
@@ -25,15 +25,18 @@ const (
 )
 
 type Task struct {
-	ID    string // "1.3", or "2" for numbered missions
-	Kind  string // graded | drill | task
-	Title string // first sentence, plain text
-	Tier  int
+	ID     string // "1.3", or "2" for numbered missions
+	Kind   string // graded | drill | task
+	Title  string // first sentence, plain text
+	Text   string // the whole first paragraph, plain text
+	Detail string // the question's own markdown (paragraphs, code blocks), heading stripped
+	Tier   int
 }
 
 type Tier struct {
 	N     int
 	Title string
+	Intro string // markdown between the tier heading and its first task (scenario, hints)
 }
 
 type Section struct {
@@ -44,7 +47,7 @@ type Section struct {
 	Title     string
 	MapsTo    string
 	Blurb     string
-	Lesson    string // README with the make/launcher instructions removed
+	Lesson    string // README with the "How to use this set" block removed
 	Tasks     []Task
 	Tiers     []Tier
 	Verify    string // verify.sh, or "" when the section is reviewed by a human
@@ -63,16 +66,15 @@ type Course struct {
 	Title    string
 	Blurb    string
 	Kind     Kind
+	PSQL     bool // SQL course: the sandbox opens in psql, not bash
 	Sections []*Section
-
-	// Sandbox courses: read from the course Makefile so `make` stays the source of truth.
-	Image     string
-	Prefix    string   // container name prefix, e.g. "lf-"
-	SeedCmd   string   // runs inside the container on start
-	ResetCmds []string // run inside the container on reset
 }
 
-func (c *Course) Container(s *Section) string { return c.Prefix + s.Slug }
+// Sandbox courses build one image from the course Dockerfile and run one container
+// per section. Names are derived from the folders, so nothing has to be configured.
+func (c *Course) Image() string { return "amigoscode-academy/" + c.Slug }
+
+func (c *Course) Container(s *Section) string { return "academy_" + c.Slug + "_" + s.Slug }
 
 var (
 	numbered   = regexp.MustCompile(`^(\d{2})-[a-z0-9-]+$`)
@@ -82,8 +84,6 @@ var (
 	missionRe  = regexp.MustCompile(`^(\d+)\.\s+\*\*\(([^)]*)\)\*\*\s*(.*)$`)
 	mdNoise    = regexp.MustCompile("\\*\\*|__|`|\\*|\\[|\\]\\([^)]*\\)")
 	hintParens = regexp.MustCompile(`\s*\*\(.*\)\*\s*$`)
-	makeVar    = regexp.MustCompile(`(?m)^(IMAGE|CONTAINER)\s*:?=\s*(\S+)`)
-	bashLc     = regexp.MustCompile(`bash -lc '([^']*)'`)
 )
 
 func LoadCatalog(repo string) ([]*Course, error) {
@@ -101,9 +101,9 @@ func LoadCatalog(repo string) ([]*Course, error) {
 		switch {
 		case exists(filepath.Join(c.Dir, "runner.sh")):
 			c.Kind = KindHost
-		case exists(filepath.Join(c.Dir, "Makefile")):
+		case exists(filepath.Join(c.Dir, "Dockerfile")):
 			c.Kind = KindSandbox
-			parseMakefile(c)
+			c.PSQL = exists(filepath.Join(c.Dir, "start-postgres.sh"))
 		default:
 			continue
 		}
@@ -131,6 +131,10 @@ var taglines = map[string]string{
 	"04-shell-scripting":         "Automate the boring stuff. Write Bash scripts with conditions, loops, functions and proper error handling.",
 	"05-git-github-fundamentals": "Version control from zero: commits, history, branches and remotes - then push a project end to end.",
 	"06-docker":                  "Package, run and debug real containers on your own Docker, then ship multi-service apps with Compose.",
+	"07-up-and-running-with-sql": "Your first steps with PostgreSQL: the server, psql, databases and tables - on a real Postgres of your own.",
+	"08-sql-fundamentals":        "Write real SQL: query, filter, group, change data and join tables, graded against the right answer.",
+	"09-advanced-databases":      "What separates juniors from seniors: indexes, transactions, window functions, triggers, roles and security.",
+	"10-database-design":         "Design schemas that last: entities, relationships, keys and normalization - then build them for real.",
 }
 
 func loadSections(c *Course) {
@@ -165,85 +169,77 @@ func loadSections(c *Course) {
 	sort.Slice(c.Sections, func(i, j int) bool { return c.Sections[i].Slug < c.Sections[j].Slug })
 }
 
-// parseMakefile pulls the image, container prefix and the seed/reset commands out
-// of a course Makefile, falling back to the conventions every course follows.
-func parseMakefile(c *Course) {
-	mk := readFile(filepath.Join(c.Dir, "Makefile"))
-	c.Image = c.Slug
-	c.Prefix = c.Slug + "-"
-	for _, m := range makeVar.FindAllStringSubmatch(mk, -1) {
-		switch m[1] {
-		case "IMAGE":
-			c.Image = m[2]
-		case "CONTAINER":
-			c.Prefix = strings.TrimSuffix(m[2], "$(S)")
-		}
-	}
-	c.SeedCmd = "test -d ~/sandbox || bash /exercise/seed.sh"
-	if cmds := targetCmds(mk, "start"); len(cmds) > 0 {
-		c.SeedCmd = cmds[0]
-	}
-	c.ResetCmds = []string{"rm -rf ~/sandbox", "bash /exercise/seed.sh"}
-	if cmds := targetCmds(mk, "reset"); len(cmds) > 0 {
-		c.ResetCmds = cmds
-	}
-}
-
-// targetCmds returns the `bash -lc '...'` commands in one Makefile target's recipe.
-func targetCmds(mk, target string) []string {
-	var out []string
-	in := false
-	for _, line := range strings.Split(mk, "\n") {
-		if strings.HasPrefix(line, target+":") {
-			in = true
-			continue
-		}
-		if in {
-			if line != "" && !strings.HasPrefix(line, "\t") && !strings.HasPrefix(line, " ") {
-				break
-			}
-			for _, m := range bashLc.FindAllStringSubmatch(line, -1) {
-				out = append(out, m[1])
-			}
-		}
-	}
-	return out
-}
-
+// parseTasks splits a section README into tiers and questions. Each question keeps
+// its own markdown (up to the next question, tier or heading) so the exercise screen
+// can show one question at a time; each tier keeps its intro (the scenario).
 func parseTasks(readme string) ([]Task, []Tier) {
 	var tasks []Task
 	var tiers []Tier
-	tier := 0
-	lines := strings.Split(readme, "\n")
-	inCode := false
-	for i, line := range lines {
-		if strings.HasPrefix(strings.TrimSpace(line), "```") {
-			inCode = !inCode
-			continue
+	var buf []string
+	cur, curTier := -1, -1
+	mission := false
+	flush := func() {
+		body := strings.TrimSpace(strings.Join(buf, "\n"))
+		switch {
+		case cur >= 0:
+			tasks[cur].Detail = body
+			para := strings.SplitN(body, "\n\n", 2)[0]
+			para = strings.SplitN(para, "```", 2)[0]
+			tasks[cur].Text = plain(para)
+			tasks[cur].Title = firstSentence(tasks[cur].Text)
+		case curTier >= 0:
+			tiers[curTier].Intro = strings.TrimSpace(tiers[curTier].Intro + "\n\n" + body)
 		}
-		if inCode {
-			continue
-		}
-		if m := tierRe.FindStringSubmatch(line); m != nil {
-			tier++
-			tiers = append(tiers, Tier{N: tier, Title: plain(hintParens.ReplaceAllString(m[2], ""))})
-			continue
-		}
-		var id, kind, rest string
-		if m := taskRe.FindStringSubmatch(line); m != nil {
-			id, kind, rest = m[1], m[2], m[3]
-		} else if m := missionRe.FindStringSubmatch(line); m != nil {
-			id, kind, rest = m[1], m[2], m[3]
-		} else {
-			continue
-		}
-		// The task text often wraps - join the paragraph, then keep the first sentence.
-		para := rest
-		for j := i + 1; j < len(lines) && strings.TrimSpace(lines[j]) != "" && !strings.HasPrefix(lines[j], "```"); j++ {
-			para += " " + strings.TrimSpace(lines[j])
-		}
-		tasks = append(tasks, Task{ID: id, Kind: normKind(kind), Title: firstSentence(plain(para)), Tier: tier})
+		buf = nil
 	}
+	inCode := false
+	for _, line := range strings.Split(readme, "\n") {
+		trim := strings.TrimSpace(line)
+		fence := strings.HasPrefix(trim, "```")
+		if fence {
+			inCode = !inCode
+		}
+		if !inCode && !fence {
+			if m := tierRe.FindStringSubmatch(line); m != nil {
+				flush()
+				cur = -1
+				t := Tier{N: len(tiers) + 1, Title: plain(hintParens.ReplaceAllString(m[2], ""))}
+				if h := hintParens.FindString(m[2]); h != "" {
+					h = strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(h), "*("), ")*")
+					t.Intro = "_" + strings.ToUpper(h[:1]) + h[1:] + "_"
+				}
+				tiers = append(tiers, t)
+				curTier = len(tiers) - 1
+				continue
+			}
+			if strings.HasPrefix(line, "#") || trim == "---" {
+				flush()
+				cur, curTier = -1, -1
+				continue
+			}
+			var id, kind, rest string
+			isMission := false
+			if m := taskRe.FindStringSubmatch(line); m != nil {
+				id, kind, rest = m[1], m[2], m[3]
+			} else if m := missionRe.FindStringSubmatch(line); m != nil {
+				id, kind, rest, isMission = m[1], m[2], m[3], true
+			}
+			if id != "" {
+				flush()
+				tasks = append(tasks, Task{ID: id, Kind: normKind(kind), Tier: len(tiers)})
+				cur, curTier, mission = len(tasks)-1, -1, isMission
+				buf = []string{rest}
+				continue
+			}
+		}
+		if cur >= 0 || curTier >= 0 {
+			if cur >= 0 && mission && !inCode {
+				line = strings.TrimLeft(line, " ")
+			}
+			buf = append(buf, line)
+		}
+	}
+	flush()
 	return tasks, tiers
 }
 
@@ -258,7 +254,7 @@ func normKind(k string) string {
 	return "task"
 }
 
-// lessonBody drops the "How to use this set" block: it explains make/launcher
+// lessonBody drops the "How to use this set" block: it explains launcher
 // commands that the academy now runs for the student.
 func lessonBody(readme string) string {
 	lines := strings.Split(readme, "\n")
@@ -342,9 +338,16 @@ func firstSentence(s string) string {
 	return s
 }
 
+// plain drops markdown markup but keeps what's inside `code` as written, so
+// `SELECT *` stays `SELECT *` instead of losing its star.
 func plain(s string) string {
-	s = mdNoise.ReplaceAllString(s, "")
-	return strings.Join(strings.Fields(s), " ")
+	parts := strings.Split(s, "`")
+	for i := range parts {
+		if i%2 == 0 || i == len(parts)-1 { // prose (or an unclosed backtick)
+			parts[i] = mdNoise.ReplaceAllString(parts[i], "")
+		}
+	}
+	return strings.Join(strings.Fields(strings.Join(parts, "")), " ")
 }
 
 func exists(p string) bool { _, err := os.Stat(p); return err == nil }

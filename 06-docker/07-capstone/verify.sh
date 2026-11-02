@@ -40,7 +40,7 @@ echo "Tier 3 - Prove the whole chain works"
 chain=""
 if [ -f "$CF" ]; then
   for _ in $(seq 1 10); do
-    chain="$(docker compose -f "$CF" exec -T web wget -qO- http://127.0.0.1/api/messages 2>/dev/null || true)"
+    chain="$(docker compose -f "$CF" exec -T web wget -qO- http://127.0.0.1/api/messages </dev/null 2>/dev/null || true)"
     echo "$chain" | grep -q 'Hello from Postgres' && break
     sleep 2
   done
@@ -48,7 +48,7 @@ fi
 if echo "$chain" | grep -q 'Hello from Postgres'; then
   ok "3.1 end to end works: UI -> API -> Postgres returns the seeded message"
 else
-  no "3.1 bring the stack up so localhost:8080 shows a message read from Postgres"
+  no "3.1 bring the stack up so localhost:8086 shows a message read from Postgres"
 fi
 
 echo

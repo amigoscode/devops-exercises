@@ -2,7 +2,7 @@
 # Runs INSIDE the container. Grades the Git capstone.
 set -uo pipefail
 SB="$HOME/sandbox"; P="$SB/myapp"; R="$SB/origin.git"
-[[ -d "$SB" ]] || { echo "No sandbox. Run 'make start S=04-capstone' first."; exit 1; }
+[[ -d "$SB" ]] || { echo "No sandbox. Open this section in the Academy (./academy.sh) and press enter first."; exit 1; }
 
 pass=0; fail=0
 ok(){ printf '  ✅ %s\n' "$1"; pass=$((pass+1)); }
@@ -21,7 +21,7 @@ if [[ "$(local_count)" -ge 2 ]]; then
 else
   no "2. add another file/change and make a second commit"
 fi
-if git -C "$P" remote -v 2>/dev/null | grep -q 'origin.git'; then
+if git -C "$P" remote get-url origin 2>/dev/null | grep -q 'origin.git'; then
   ok "3. 'origin' remote points at ~/sandbox/origin.git"
 else
   no "3. git remote add origin ~/sandbox/origin.git"

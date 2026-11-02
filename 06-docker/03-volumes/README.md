@@ -31,22 +31,22 @@ The seed creates a small website for you at
 
 **1.1 (graded)** Serve the seeded `site/` folder with nginx **without building an
 image** - bind-mount it straight in. Run an `nginx:alpine` container named `bindweb`,
-publish host port **8080** to **80**, and bind-mount the site folder onto nginx's web
+publish host port **8084** to **80**, and bind-mount the site folder onto nginx's web
 root `/usr/share/nginx/html`.
 
 > Tip: `cd` into the folder first, then use the "current folder" variable as the host path:
 > ```bash
 > # macOS / Linux / WSL
 > cd sandbox/03-volumes/site
-> docker run -d --name bindweb -p 8080:80 -v "$(pwd)":/usr/share/nginx/html nginx:alpine
+> docker run -d --name bindweb -p 8084:80 -v "$(pwd)":/usr/share/nginx/html nginx:alpine
 > ```
 > ```powershell
 > # Windows PowerShell - same command, ${PWD} instead of $(pwd)
 > cd sandbox\03-volumes\site
-> docker run -d --name bindweb -p 8080:80 -v "${PWD}:/usr/share/nginx/html" nginx:alpine
+> docker run -d --name bindweb -p 8084:80 -v "${PWD}:/usr/share/nginx/html" nginx:alpine
 > ```
 
-**1.2 (drill)** Edit `site/index.html` on your machine and reload `localhost:8080`.
+**1.2 (drill)** Edit `site/index.html` on your machine and reload `localhost:8084`.
 The change shows **instantly** - no rebuild. That is the power of a bind mount for
 local development.
 
@@ -71,6 +71,7 @@ the container that wrote it is gone.
 > ```bash
 > docker rm -f keeper
 > docker run --rm -v appdata:/data nginx:alpine cat /data/persisted.txt   # still "survived"
+> docker run -d --name keeper -v appdata:/data nginx:alpine               # bring keeper back for 2.2
 > ```
 
 All green = you can share folders for dev and persist data with managed volumes.

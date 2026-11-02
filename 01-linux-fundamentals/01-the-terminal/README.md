@@ -15,14 +15,10 @@ This set builds that fluency.
 
 ## How to use this set
 
-```bash
-# from the linux-fundamentals/ folder
-make build                          # once
-make start  S=01-the-terminal       # pristine Ubuntu shell, sandbox + history seeded
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=01-the-terminal       # grades the auto-checkable tasks
-make reset  S=01-the-terminal       # fresh start
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Linux Fundamentals → The Terminal** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 Some tasks are **auto-graded** (✅/❌). The keyboard drills are **self-checked** -
 there's no file to grade a keystroke, so you confirm those yourself.

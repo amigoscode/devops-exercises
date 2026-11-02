@@ -2,7 +2,7 @@
 # Runs INSIDE the container. Grades the First Repo exercises.
 set -uo pipefail
 SB="$HOME/sandbox"; P="$SB/project"
-[[ -d "$SB" ]] || { echo "No sandbox. Run 'make start S=01-first-repo' first."; exit 1; }
+[[ -d "$SB" ]] || { echo "No sandbox. Open this section in the Academy (./academy.sh) and press enter first."; exit 1; }
 
 pass=0; fail=0
 ok(){ printf '  ✅ %s\n' "$1"; pass=$((pass+1)); }

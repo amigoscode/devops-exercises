@@ -9,12 +9,10 @@ Work inside `~/sandbox/project` (it already has one commit).
 
 ## How to use this set
 
-```bash
-make start  S=02-tracking-changes
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=02-tracking-changes
-make reset  S=02-tracking-changes
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Git & GitHub Fundamentals → Tracking Changes** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 ---
 
@@ -28,8 +26,9 @@ to untracked - without deleting the file from disk.
 
 ## Tier 2 - See your changes *(think: which command shows what changed)*
 
-**2.1 (graded)** Edit `tracked.txt` (add a line). Then capture the difference
-between your working copy and the last commit into `~/sandbox/changes.diff`.
+**2.1 (graded)** Edit `tracked.txt` (add a line) - don't stage it. Then capture
+the difference between your working copy and the last commit into
+`~/sandbox/changes.diff`.
 
 ## Tier 3 - Inspect history *(goal only)*
 

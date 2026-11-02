@@ -6,24 +6,24 @@ exercises build real editing fluency, auto-graded inside a disposable container.
 
 - 🐧 **Real Vim, real files** - edit in an actual terminal Vim, like on a server
 - ✅ **Auto-graded** - the grader checks the file you produced
-- 🔁 **Resettable** - `make reset` restores the starting files
+- 🔁 **Resettable** - press `r` in the Academy to restore the starting files
 - 🎯 **DevOps-flavoured** - every task is the kind of config edit you'll do for real
-
-> **Easiest way in:** run `./academy.sh` (Windows: `academy.cmd`) from the repo root.
-> It opens this course in a terminal app - lessons, one-key sandboxes, instant
-> grading and progress tracking. The commands below still work if you prefer them.
 
 ## Quick start
 
+From the repo root:
+
 ```bash
-make build                              # build the Vim image once
-make start  S=01-insert-and-save        # shell with files seeded; edit with vim
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=01-insert-and-save        # grade your edits
-make reset  S=01-insert-and-save        # fresh start
+./academy.sh        # macOS, Linux, WSL, Git Bash, Codespaces
+academy.cmd         # Windows
 ```
 
-You need **Docker** and **make** (both already provided in GitHub Codespaces).
+Pick **Vim**, choose a section and press `enter`: you get a fresh Ubuntu
+sandbox with the scenario already set up and the questions printed at the top.
+Inside it, `questions` shows them again, `check` grades your work, and `exit`
+takes you back with your progress saved.
+
+**Docker is the only thing you need installed.** (Codespaces works too - zero install.)
 
 ## Sections
 

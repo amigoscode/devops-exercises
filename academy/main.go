@@ -38,6 +38,7 @@ func main() {
 			program.Send(statusMsg(s))
 		}
 	}
+	defer ops.Cleanup()
 	m := newModel(ops, courses, LoadProgress(repo))
 
 	// Paint the whole terminal in the Amigoscode navy (OSC 11) and restore it on exit
@@ -74,7 +75,7 @@ func findRepo() (string, error) {
 
 func printCatalog(courses []*Course) {
 	for _, c := range courses {
-		kind := "sandbox image=" + c.Image + " prefix=" + c.Prefix
+		kind := "sandbox image=" + c.Image()
 		if c.Kind == KindHost {
 			kind = "host"
 		}

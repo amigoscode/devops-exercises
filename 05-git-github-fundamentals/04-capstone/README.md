@@ -8,12 +8,10 @@ project pushed to a remote - the exact loop you'll run when starting any new rep
 
 ## How to use this set
 
-```bash
-make start  S=04-capstone
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=04-capstone
-make reset  S=04-capstone
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Git & GitHub Fundamentals → Capstone: Zero to Pushed** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 You have an empty project at `~/sandbox/myapp` and an empty remote at
 `~/sandbox/origin.git`.
@@ -28,7 +26,7 @@ You have an empty project at `~/sandbox/myapp` and an empty remote at
 3. **(graded)** Link the repo to the remote `~/sandbox/origin.git` as **`origin`**.
 4. **(graded)** **Push** your `main` branch so both commits land on the remote.
 
-When `make verify` shows **4/4**, you've done the full new-project git workflow.
+When `check` shows **4/4**, you've done the full new-project git workflow.
 
 ## Self-check
 

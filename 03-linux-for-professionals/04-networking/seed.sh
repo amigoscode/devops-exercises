@@ -13,7 +13,7 @@ cat > "$SB/services.json" <<'EOF'
 EOF
 
 # Start a local HTTP server on port 8000 serving the sandbox (the "service"
-# you'll curl). Survives across sessions.
+# you'll curl). If the sandbox is restarted, wake.sh starts it again.
 pkill -f 'http.server 8000' 2>/dev/null || true
 cd "$SB"
 nohup python3 -m http.server 8000 >/dev/null 2>&1 & disown

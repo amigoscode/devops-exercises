@@ -73,7 +73,7 @@ docker build -t orders:1 ./sandbox/08-capstone-microservices/orders-service
   `users-db`.
 - `orders-service` - build `./orders-service` as `image: orders:1`, env pointing at
   `orders-db`, plus `USERS_URL=http://users-service:5000`.
-- `web` - build `./frontend`, publish host port **8080** to **80**.
+- `web` - build `./frontend`, publish host port **8087** to **80**.
 
 Bring the whole thing up in the background.
 
@@ -86,7 +86,7 @@ mixed with another's.
 > **Scenario:** ship day for a microservices app. A page load has to fan out to two
 > services and two databases and come back correct.
 
-**3.1 (graded)** `http://localhost:8080` lists the **users** - proving
+**3.1 (graded)** `http://localhost:8087` lists the **users** - proving
 `web → users-service → users-db` works.
 
 **3.2 (graded)** The same page lists the **orders**, and each order shows the **buyer's

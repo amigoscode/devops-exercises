@@ -33,7 +33,7 @@ for _ in $(seq 1 45); do
   sleep 2
 done
 $up && ok "GET /api/v1/messages returns 200 (app + database are up)" \
-    || { no "the app never answered 200 on $BASE/api/v1/messages"; echo; echo "Score: $pass ok, $fail failed."; exit 1; }
+    || { no "the app never answered 200 on $BASE/api/v1/messages (is it up? is another container holding the port? see: docker ps)"; echo; echo "Score: $pass passed, $fail failed."; exit 1; }
 
 # 2. Submit a message.
 echo "2) Submit a message"

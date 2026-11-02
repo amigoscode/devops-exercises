@@ -7,7 +7,7 @@ This is the payoff. You will stand up a real three-tier stack:
 
 ```
   browser ->  web (nginx UI)  ->  api (Python backend)  ->  db (Postgres)
-                 :8080              service name "api"        named volume
+                 :8086              service name "api"        named volume
 ```
 
 The **UI** is served by nginx and proxies API calls to the backend. The **backend**
@@ -61,7 +61,7 @@ docker build -t api:1 ./sandbox/07-capstone/backend
   `/var/lib/postgresql/data`.
 - **`api`** - build from `./backend`, tagged `image: api:1`; pass the `DB_*` env vars so
   it points at the `db` service (`DB_HOST=db`, and the matching name/user/password).
-- **`web`** - build from `./frontend`; publish host port **8080** to **80**.
+- **`web`** - build from `./frontend`; publish host port **8086** to **80**.
 
 Then bring the whole stack up in the background with a single command.
 
@@ -73,7 +73,7 @@ inside the container - so it survives the container being recreated.
 > **Scenario:** ship day. A request from the browser has to travel UI -> API -> DB and
 > come back with real data, or you have not actually shipped anything.
 
-**3.1 (graded)** With the stack up, `http://localhost:8080` shows a message that
+**3.1 (graded)** With the stack up, `http://localhost:8086` shows a message that
 **came out of Postgres** (the UI calls the API, which queries the database). Make the
 full chain work end to end.
 

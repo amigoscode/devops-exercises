@@ -10,12 +10,10 @@ pushing to the real GitHub is a drill at the end.
 
 ## How to use this set
 
-```bash
-make start  S=03-remotes
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-make verify S=03-remotes
-make reset  S=03-remotes
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Git & GitHub Fundamentals → Remote Repositories** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 You have a repo at `~/sandbox/project` (one commit) and a remote at
 `~/sandbox/remote.git`.
@@ -41,7 +39,9 @@ confirm the files came across.
 
 ## 💪 Drill (self-check - needs a GitHub account)
 
-Create a repo on GitHub, then point your real project at it and push:
+Do this on your own machine, not in the sandbox (it has no SSH client, and its
+`origin` already points at `remote.git`). Create a repo on GitHub, then point a
+real project of yours at it and push:
 ```bash
 git remote add origin git@github.com:<you>/<repo>.git
 git push -u origin main

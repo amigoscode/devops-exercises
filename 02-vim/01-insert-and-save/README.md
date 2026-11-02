@@ -8,15 +8,10 @@ First skill: get text in, and get out safely. Vim starts in **normal mode**; pre
 
 ## How to use this set
 
-```bash
-# from the 02-vim/ folder
-make build                          # once
-make start  S=01-insert-and-save    # shell with files seeded in ~/sandbox
-#   ...work in the container; when done, type 'exit' (or Ctrl+D) to leave, then:
-# ...edit with vim...
-make verify S=01-insert-and-save    # grade your work
-make reset  S=01-insert-and-save    # fresh start
-```
+Open it in the Academy: run `./academy.sh` from the repo root (Windows:
+`academy.cmd`), pick **Vim → Insert & Save** and press `enter`. Inside the
+sandbox, `questions` lists the tasks, `check` grades your work, and `exit` takes
+you back with your progress saved. Press `r` in the Academy for a fresh start.
 
 The grader checks the **resulting files**, so you must actually make the edits in
 Vim and save them.

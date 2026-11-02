@@ -8,9 +8,10 @@ COPY *.go ./
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /academy .
 
 # The runtime talks to the student's Docker daemon through the mounted socket, and
-# carries bash + the Docker CLI so the Docker course scripts run exactly as on a Mac.
+# carries bash + the Docker CLI so the Docker course scripts run exactly as on a Mac
+# (and git, so the open-ended capstone can clone a fork right in the Academy shell).
 FROM alpine:3.20
-RUN apk add --no-cache bash docker-cli docker-cli-compose curl grep
+RUN apk add --no-cache bash docker-cli docker-cli-compose curl grep git
 COPY --from=build /academy /usr/local/bin/academy
 ENV ACADEMY_IN_DOCKER=1 \
     TERM=xterm-256color \

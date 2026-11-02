@@ -5,8 +5,9 @@ the journey (man / --help / apropos) is the point.
 
 ## Tier 1
 
-**1.1** Find the "all files" flag. `ls --help | grep -i hidden` or `man ls` →
-it's `-a` (or `--all`):
+**1.1** Find the "all files" flag. Hidden files are the ones whose names start
+with a dot, and that's how the help text words it, so `ls --help | grep -i 'starting with'`
+(or `man ls`) → it's `-a` (or `--all`), "do not ignore entries starting with .":
 ```bash
 ls -a ~/sandbox/files > ~/sandbox/hidden.txt
 ```
