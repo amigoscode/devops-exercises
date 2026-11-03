@@ -2,4 +2,4 @@
 .transcripts/
 sandbox/
 .DS_Store
-scripts/
+scripts/.env
