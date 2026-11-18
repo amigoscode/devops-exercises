@@ -1,6 +1,6 @@
 # Solutions - Debugging
 
-Run these from the `06-docker/` folder so the relative paths match (the Academy's
+Run these from the `devops/05-docker/` folder so the relative paths match (the Academy's
 shell starts there).
 
 ## Tier 1

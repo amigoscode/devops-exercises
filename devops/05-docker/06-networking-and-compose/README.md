@@ -13,7 +13,7 @@ production stacks are actually run.
 ## How to use this set
 
 ```bash
-# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+# from the devops/05-docker/ folder or the repo root   (on Windows: course.cmd ...)
 ./course.sh start  06-networking-and-compose
 #   ...run the docker commands below in this terminal, then:
 ./course.sh verify 06-networking-and-compose
@@ -24,7 +24,7 @@ production stacks are actually run.
 ```
 
 Write your compose file at
-`06-docker/sandbox/06-networking-and-compose/docker-compose.yml`.
+`devops/05-docker/sandbox/06-networking-and-compose/docker-compose.yml`.
 
 ---
 

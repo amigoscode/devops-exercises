@@ -2,13 +2,13 @@ package main
 
 // Ops runs the exercises.
 //
-// Sandbox courses (01-05): one image per course, built from its Dockerfile, and one
-// container per section. The section folder is copied into the container with
+// Sandbox courses (Linux, Vim, shell, Git, SQL): one image per course, built from
+// its Dockerfile, and one container per section. The section folder is copied into the container with
 // `docker cp` (not bind-mounted), which works no matter where the academy runs -
 // natively, or inside its own container on Windows - because the Docker client
 // streams the files and no host path has to line up.
 //
-// Host courses (06 Docker): start/verify/reset/stop are delegated to the course's
+// Host courses (Docker): start/verify/reset/stop are delegated to the course's
 // own runner.sh, so `./course.sh` and the academy stay interchangeable.
 
 import (

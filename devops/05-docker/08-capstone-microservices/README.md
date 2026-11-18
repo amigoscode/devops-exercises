@@ -29,7 +29,7 @@ services and compose the whole system.
 ## How to use this set
 
 ```bash
-# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+# from the devops/05-docker/ folder or the repo root   (on Windows: course.cmd ...)
 ./course.sh start  08-capstone-microservices
 #   ...write the two Dockerfiles + compose file, bring it up, then:
 ./course.sh verify 08-capstone-microservices
@@ -39,7 +39,7 @@ services and compose the whole system.
 #   ../course.sh verify
 ```
 
-The seed drops the app under `06-docker/sandbox/08-capstone-microservices/`:
+The seed drops the app under `devops/05-docker/sandbox/08-capstone-microservices/`:
 
 ```
 users-service/   app.py, requirements.txt        <- you add the Dockerfile

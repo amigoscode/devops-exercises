@@ -12,7 +12,7 @@ between "my data vanished" and a system you can trust.
 ## How to use this set
 
 ```bash
-# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+# from the devops/05-docker/ folder or the repo root   (on Windows: course.cmd ...)
 ./course.sh start  03-volumes
 #   ...run the docker commands below in this terminal, then:
 ./course.sh verify 03-volumes
@@ -23,7 +23,7 @@ between "my data vanished" and a system you can trust.
 ```
 
 The seed creates a small website for you at
-`06-docker/sandbox/03-volumes/site/index.html`.
+`devops/05-docker/sandbox/03-volumes/site/index.html`.
 
 ---
 

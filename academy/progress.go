@@ -42,8 +42,49 @@ func LoadProgress(repo string) *Progress {
 		if p.Sections == nil {
 			p.Sections = map[string]*SectionProgress{}
 		}
+		p.migrate()
 	}
 	return p
+}
+
+// movedCourses maps the course folders from before the devops/ git/ sql/ split to
+// where they live now, so progress recorded under the old keys carries over.
+var movedCourses = map[string]string{
+	"01-linux-fundamentals":      "devops/01-linux-fundamentals",
+	"02-vim":                     "devops/02-vim",
+	"03-linux-for-professionals": "devops/03-linux-for-professionals",
+	"04-shell-scripting":         "devops/04-shell-scripting",
+	"05-git-github-fundamentals": "git/01-git-github-fundamentals",
+	"06-docker":                  "devops/05-docker",
+	"07-up-and-running-with-sql": "sql/01-up-and-running-with-sql",
+	"08-sql-fundamentals":        "sql/02-sql-fundamentals",
+	"09-advanced-databases":      "sql/03-advanced-databases",
+	"10-database-design":         "sql/04-database-design",
+}
+
+func movedKey(key string) (string, bool) {
+	course, section, ok := strings.Cut(key, "/")
+	if !ok || strings.Contains(section, "/") {
+		return key, false
+	}
+	if to, ok := movedCourses[course]; ok {
+		return to + "/" + section, true
+	}
+	return key, false
+}
+
+func (p *Progress) migrate() {
+	for k, sp := range p.Sections {
+		if nk, ok := movedKey(k); ok {
+			if _, taken := p.Sections[nk]; !taken {
+				p.Sections[nk] = sp
+			}
+			delete(p.Sections, k)
+		}
+	}
+	if nk, ok := movedKey(p.Last); ok {
+		p.Last = nk
+	}
 }
 
 func (p *Progress) Save() error {

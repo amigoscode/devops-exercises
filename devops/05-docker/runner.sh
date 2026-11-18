@@ -5,7 +5,7 @@
 #   macOS / Linux / WSL / Git Bash / Codespaces : ./course.sh  verify 01-containers
 #   Windows (PowerShell or cmd)                 : course.cmd   verify 01-containers
 #
-# Launchers sit in the repo root and in 06-docker/, and `install` puts a `course`
+# Launchers sit in the repo root and in devops/05-docker/, and `install` puts a `course`
 # command on your PATH so any folder works. Nothing here depends on where you cd to.
 #
 # Docker itself is the subject of this course, so there is no container to drop
@@ -41,7 +41,7 @@ Docker for Professionals - exercise runner
 
 Inside a section folder you can leave it out entirely - the section is taken from
 the folder you are standing in:
-  cd 06-docker/03-volumes && $LAUNCHER verify
+  cd devops/05-docker/03-volumes && $LAUNCHER verify
 
 Sections:
 $(sections | sed 's/^/  /')
@@ -79,9 +79,9 @@ resolve() {
 }
 
 # Works out the section from the folder you are standing in, so that
-#   cd 06-docker/03-volumes && course verify
+#   cd devops/05-docker/03-volumes && course verify
 # and
-#   cd 06-docker/sandbox/03-volumes/site && course verify
+#   cd devops/05-docker/sandbox/03-volumes/site && course verify
 # both know which section you mean. Prints nothing if we are not inside one.
 from_cwd() {
   local cwd="${COURSE_CWD:-$PWD}" rel first
@@ -139,7 +139,7 @@ case "$CMD" in
     mkdir -p "$SB"
     seed || exit 1
     echo
-    echo "Seeded $S. Your working files (if any) are in: 06-docker/sandbox/$S"
+    echo "Seeded $S. Your working files (if any) are in: devops/05-docker/sandbox/$S"
     echo "Now run the docker commands from the README in this terminal, then:"
     if [ "$LAUNCHER" = academy ]; then echo "  check"; else echo "  $LAUNCHER verify $S"; fi
     ;;
@@ -184,7 +184,7 @@ SHIM
       echo
       echo "You can now run 'course' from any folder:"
       echo "  course verify 01-containers"
-      echo "  cd 06-docker/03-volumes && course verify"
+      echo "  cd devops/05-docker/03-volumes && course verify"
     else
       echo
       echo "$BIN is not on your PATH yet. Add it, then reopen your terminal:"

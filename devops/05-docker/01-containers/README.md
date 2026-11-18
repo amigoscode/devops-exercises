@@ -13,7 +13,7 @@ You run `docker` commands directly in your terminal (see the main
 [course README](../README.md) for why there is no container to enter here).
 
 ```bash
-# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+# from the devops/05-docker/ folder or the repo root   (on Windows: course.cmd ...)
 ./course.sh start  01-containers      # seeds a couple of containers for you to manage
 #   ...run the docker commands below in this terminal, then:
 ./course.sh verify 01-containers      # grades your work

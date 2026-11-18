@@ -3,11 +3,14 @@ package main
 // The catalog is read straight from the repo on every launch, so adding a course
 // or a section is just adding a folder - the academy never needs to be edited.
 //
-//   NN-course/                 a course (Dockerfile => Ubuntu sandbox, runner.sh => host Docker)
-//     README.md                "# Title - Hands-On Exercises"
-//     NN-section/
-//       README.md              tiers ("## Tier 1 - ...") and tasks ("**1.1 (graded)** ...")
-//       seed.sh verify.sh solutions.md
+//   track/                       a group of courses: devops/, git/, sql/
+//     README.md                  "# DevOps" - the name shown in the course list
+//     NN-course/                 a course (Dockerfile => Ubuntu sandbox, runner.sh => host Docker,
+//                                start-postgres.sh => the sandbox opens in psql)
+//       README.md                "# Title - Hands-On Exercises"
+//       NN-section/
+//         README.md              tiers ("## Tier 1 - ...") and tasks ("**1.1 (graded)** ...")
+//         seed.sh verify.sh solutions.md
 
 import (
 	"os"
@@ -55,26 +58,32 @@ type Section struct {
 	Solutions string // solutions.md path, "" if none
 }
 
-func (s *Section) Key() string { return s.Course.Slug + "/" + s.Slug }
+// Key identifies the section in progress.json: "sql/02-sql-fundamentals/03-filtering-data".
+func (s *Section) Key() string { return s.Course.ID + "/" + s.Slug }
 
 func (s *Section) Graded() bool { return s.Verify != "" }
 
 type Course struct {
-	Slug     string
-	Dir      string
-	Num      string
-	Title    string
-	Blurb    string
-	Kind     Kind
-	PSQL     bool // SQL course: the sandbox opens in psql, not bash
-	Sections []*Section
+	Track      string // devops
+	TrackTitle string // DevOps
+	Slug       string // 01-linux-fundamentals
+	ID         string // devops/01-linux-fundamentals
+	Dir        string
+	Num        string
+	Title      string
+	Blurb      string
+	Kind       Kind
+	PSQL       bool // SQL course: the sandbox opens in psql, not bash
+	Sections   []*Section
 }
 
 // Sandbox courses build one image from the course Dockerfile and run one container
 // per section. Names are derived from the folders, so nothing has to be configured.
-func (c *Course) Image() string { return "amigoscode-academy/" + c.Slug }
+func (c *Course) Image() string { return "amigoscode-academy/" + c.Track + "-" + c.Slug }
 
-func (c *Course) Container(s *Section) string { return "academy_" + c.Slug + "_" + s.Slug }
+func (c *Course) Container(s *Section) string {
+	return "academy_" + c.Track + "-" + c.Slug + "_" + s.Slug
+}
 
 var (
 	numbered   = regexp.MustCompile(`^(\d{2})-[a-z0-9-]+$`)
@@ -86,55 +95,86 @@ var (
 	hintParens = regexp.MustCompile(`\s*\*\(.*\)\*\s*$`)
 )
 
+// trackOrder is the order tracks appear in the Academy; others follow alphabetically.
+var trackOrder = map[string]int{"devops": 1, "git": 2, "sql": 3}
+
+func trackRank(t string) int {
+	if r, ok := trackOrder[t]; ok {
+		return r
+	}
+	return len(trackOrder) + 1
+}
+
 func LoadCatalog(repo string) ([]*Course, error) {
-	entries, err := os.ReadDir(repo)
+	tracks, err := os.ReadDir(repo)
 	if err != nil {
 		return nil, err
 	}
 	var courses []*Course
-	for _, e := range entries {
-		m := numbered.FindStringSubmatch(e.Name())
-		if !e.IsDir() || m == nil {
+	for _, t := range tracks {
+		if !t.IsDir() || strings.HasPrefix(t.Name(), ".") {
 			continue
 		}
-		c := &Course{Slug: e.Name(), Dir: filepath.Join(repo, e.Name()), Num: m[1]}
-		switch {
-		case exists(filepath.Join(c.Dir, "runner.sh")):
-			c.Kind = KindHost
-		case exists(filepath.Join(c.Dir, "Dockerfile")):
-			c.Kind = KindSandbox
-			c.PSQL = exists(filepath.Join(c.Dir, "start-postgres.sh"))
-		default:
+		tdir := filepath.Join(repo, t.Name())
+		entries, err := os.ReadDir(tdir)
+		if err != nil {
 			continue
 		}
-		readme := readFile(filepath.Join(c.Dir, "README.md"))
-		c.Title = cleanTitle(firstH1(readme), e.Name())
-		c.Blurb = firstParagraph(readme)
-		if t, ok := taglines[c.Slug]; ok {
-			c.Blurb = t
+		ttitle := cleanTitle(firstH1(readFile(filepath.Join(tdir, "README.md"))), "")
+		if ttitle == "" {
+			ttitle = strings.ToUpper(t.Name()[:1]) + t.Name()[1:]
 		}
-		loadSections(c)
-		if len(c.Sections) > 0 {
-			courses = append(courses, c)
+		for _, e := range entries {
+			m := numbered.FindStringSubmatch(e.Name())
+			if !e.IsDir() || m == nil {
+				continue
+			}
+			c := &Course{Track: t.Name(), TrackTitle: ttitle, Slug: e.Name(), ID: t.Name() + "/" + e.Name(),
+				Dir: filepath.Join(tdir, e.Name()), Num: m[1]}
+			switch {
+			case exists(filepath.Join(c.Dir, "runner.sh")):
+				c.Kind = KindHost
+			case exists(filepath.Join(c.Dir, "Dockerfile")):
+				c.Kind = KindSandbox
+				c.PSQL = exists(filepath.Join(c.Dir, "start-postgres.sh"))
+			default:
+				continue
+			}
+			readme := readFile(filepath.Join(c.Dir, "README.md"))
+			c.Title = cleanTitle(firstH1(readme), e.Name())
+			c.Blurb = firstParagraph(readme)
+			if tl, ok := taglines[c.ID]; ok {
+				c.Blurb = tl
+			}
+			loadSections(c)
+			if len(c.Sections) > 0 {
+				courses = append(courses, c)
+			}
 		}
 	}
-	sort.Slice(courses, func(i, j int) bool { return courses[i].Slug < courses[j].Slug })
+	sort.Slice(courses, func(i, j int) bool {
+		a, b := courses[i], courses[j]
+		if ra, rb := trackRank(a.Track), trackRank(b.Track); ra != rb {
+			return ra < rb
+		}
+		return a.ID < b.ID
+	})
 	return courses, nil
 }
 
 // taglines are the one-line pitches shown on the dashboard. A course without an
 // entry falls back to the first paragraph of its README.
 var taglines = map[string]string{
-	"01-linux-fundamentals":      "Get at home in the terminal: navigate the file system, manage files, users and permissions on a real Ubuntu box.",
-	"02-vim":                     "Edit configs on any server with no GUI. Insert, navigate, search-and-replace and make Vim your own.",
-	"03-linux-for-professionals": "The day-to-day of a DevOps engineer: pipes, environment variables, system admin, networking and SSH.",
-	"04-shell-scripting":         "Automate the boring stuff. Write Bash scripts with conditions, loops, functions and proper error handling.",
-	"05-git-github-fundamentals": "Version control from zero: commits, history, branches and remotes - then push a project end to end.",
-	"06-docker":                  "Package, run and debug real containers on your own Docker, then ship multi-service apps with Compose.",
-	"07-up-and-running-with-sql": "Your first steps with PostgreSQL: the server, psql, databases and tables - on a real Postgres of your own.",
-	"08-sql-fundamentals":        "Write real SQL: query, filter, group, change data and join tables, graded against the right answer.",
-	"09-advanced-databases":      "What separates juniors from seniors: indexes, transactions, window functions, triggers, roles and security.",
-	"10-database-design":         "Design schemas that last: entities, relationships, keys and normalization - then build them for real.",
+	"devops/01-linux-fundamentals":      "Get at home in the terminal: navigate the file system, manage files, users and permissions on a real Ubuntu box.",
+	"devops/02-vim":                     "Edit configs on any server with no GUI. Insert, navigate, search-and-replace and make Vim your own.",
+	"devops/03-linux-for-professionals": "The day-to-day of a DevOps engineer: pipes, environment variables, system admin, networking and SSH.",
+	"devops/04-shell-scripting":         "Automate the boring stuff. Write Bash scripts with conditions, loops, functions and proper error handling.",
+	"git/01-git-github-fundamentals":    "Version control from zero: commits, history, branches and remotes - then push a project end to end.",
+	"devops/05-docker":                  "Package, run and debug real containers on your own Docker, then ship multi-service apps with Compose.",
+	"sql/01-up-and-running-with-sql":    "Your first steps with PostgreSQL: the server, psql, databases and tables - on a real Postgres of your own.",
+	"sql/02-sql-fundamentals":           "Write real SQL: query, filter, group, change data and join tables, graded against the right answer.",
+	"sql/03-advanced-databases":         "What separates juniors from seniors: indexes, transactions, window functions, triggers, roles and security.",
+	"sql/04-database-design":            "Design schemas that last: entities, relationships, keys and normalization - then build them for real.",
 }
 
 func loadSections(c *Course) {

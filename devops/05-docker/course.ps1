@@ -40,7 +40,7 @@ if ($args.Count -ge 1 -and $args[0] -eq 'install') {
         Write-Host "You can now run 'course' from any folder:"
     }
     Write-Host "  course verify 01-containers"
-    Write-Host "  cd 06-docker\03-volumes; course verify"
+    Write-Host "  cd devops\05-docker\03-volumes; course verify"
     exit 0
 }
 

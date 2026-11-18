@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -74,7 +75,10 @@ func findRepo() (string, error) {
 }
 
 func printCatalog(courses []*Course) {
-	for _, c := range courses {
+	for i, c := range courses {
+		if i == 0 || c.Track != courses[i-1].Track {
+			fmt.Printf("\n%s\n", strings.ToUpper(c.TrackTitle))
+		}
 		kind := "sandbox image=" + c.Image()
 		if c.Kind == KindHost {
 			kind = "host"

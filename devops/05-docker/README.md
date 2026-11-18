@@ -1,4 +1,4 @@
-# 06 - Docker for Professionals
+# Docker for Professionals - Hands-On Exercises
 
 Hands-on, auto-graded Docker exercises for the Amigoscode **Docker for Professionals**
 course. You will run real containers, build real images, wire up volumes and
@@ -36,7 +36,7 @@ Everything runs through one launcher script. Pick the line for your machine:
 **macOS, Linux, WSL, Git Bash, Codespaces**
 
 ```bash
-# from the 06-docker/ folder
+# from the devops/05-docker/ folder
 ./course.sh setup                 # once (optional): pre-pull the images the course uses
 ./course.sh start  01-containers  # seed the scenario + print what to do
 #   ...run the docker commands from the section README in this terminal, then:
@@ -48,7 +48,7 @@ Everything runs through one launcher script. Pick the line for your machine:
 **Windows (PowerShell or Command Prompt)**
 
 ```powershell
-# from the 06-docker\ folder - same commands, course.cmd instead of ./course.sh
+# from the devops\05-docker\ folder - same commands, course.cmd instead of ./course.sh
 course.cmd setup
 course.cmd start  01-containers
 course.cmd verify 01-containers
@@ -74,19 +74,19 @@ list of sections.
 
 ### Running it from any folder
 
-There is a launcher in the **repo root** and in **`06-docker/`**, so both of these
+There is a launcher in the **repo root** and in **`devops/05-docker/`**, so both of these
 work out of the box:
 
 ```bash
 ./course.sh verify 01-containers            # from the repo root
-cd 06-docker && ./course.sh verify 01-containers
+cd devops/05-docker && ./course.sh verify 01-containers
 ```
 
 Inside a section folder you can drop the section name - it is taken from the folder
 you are standing in:
 
 ```bash
-cd 06-docker/03-volumes
+cd devops/05-docker/03-volumes
 ../course.sh verify                          # knows you mean 03-volumes
 ```
 
@@ -102,7 +102,7 @@ Then, from anywhere:
 
 ```bash
 course verify 01-containers
-cd 06-docker/sandbox/03-volumes/site && course verify
+cd devops/05-docker/sandbox/03-volumes/site && course verify
 ```
 
 `./course.sh uninstall` removes it again. The installed `course` is a two-line
@@ -113,7 +113,7 @@ networks **these exercises created** (they have specific names, listed in each
 section). Your own Docker stuff is never touched.
 
 Some sections give you starter files (an app to containerize, a compose file to
-finish). Those appear under `06-docker/sandbox/<section>/`, which is git-ignored, so
+finish). Those appear under `devops/05-docker/sandbox/<section>/`, which is git-ignored, so
 your edits never collide when you sync new exercises.
 
 ## The three tiers

@@ -26,9 +26,9 @@ minute); after that it starts instantly.
 
 ### How it works
 
-1. **Pick a section** - courses on the left, their sections on the right. `↑↓` to
-   move, `→` / `enter` to go in, `←` / `esc` to go back. `c` jumps straight to where
-   you left off.
+1. **Pick a section** - courses on the left, grouped into DevOps, Git and SQL, and
+   their sections on the right. `↑↓` to move, `→` / `enter` to go in, `←` / `esc`
+   to go back. `c` jumps straight to where you left off.
 2. **Read the questions** - every question of the section is listed at the top. Move
    through them with `↑↓`; the panel underneath shows the selected one in full, with
    its scenario and hints.
@@ -109,18 +109,32 @@ so it stays conflict-free.
 
 ## Courses
 
+The courses are grouped into three tracks, each in its own folder.
+
+### [DevOps](devops/)
+
 | # | Course | Status |
 |---|--------|--------|
-| 01 | [Linux Fundamentals](01-linux-fundamentals/) | ✅ 8 sections, fully tested |
-| 02 | [Vim](02-vim/) | ✅ 3 sections, fully tested |
-| 03 | [Linux for Professionals](03-linux-for-professionals/) | ✅ 5 sections, fully tested |
-| 04 | [Shell Scripting](04-shell-scripting/) | ✅ 5 sections, fully tested |
-| 05 | [Git & GitHub Fundamentals](05-git-github-fundamentals/) | ✅ 4 sections, fully tested |
-| 06 | [Docker for Professionals](06-docker/) | ✅ 6 sections + 3 capstones (full-stack, microservices, real-app review), fully tested |
-| 07 | [Up and Running with SQL and Databases](07-up-and-running-with-sql/) | ✅ PostgreSQL, psql, databases and tables |
-| 08 | [SQL and Databases Fundamentals](08-sql-fundamentals/) | ✅ queries, filtering, aggregates, joins |
-| 09 | [Advanced Databases](09-advanced-databases/) | ✅ 10 sections: indexes, transactions, window functions, triggers, security |
-| 10 | [Database Design & Implementation](10-database-design/) | ✅ modelling, normalization, design exercises |
+| 01 | [Linux Fundamentals](devops/01-linux-fundamentals/) | ✅ 8 sections, fully tested |
+| 02 | [Vim](devops/02-vim/) | ✅ 3 sections, fully tested |
+| 03 | [Linux for Professionals](devops/03-linux-for-professionals/) | ✅ 5 sections, fully tested |
+| 04 | [Shell Scripting](devops/04-shell-scripting/) | ✅ 5 sections, fully tested |
+| 05 | [Docker for Professionals](devops/05-docker/) | ✅ 6 sections + 3 capstones (full-stack, microservices, real-app review), fully tested |
+
+### [Git](git/)
+
+| # | Course | Status |
+|---|--------|--------|
+| 01 | [Git & GitHub Fundamentals](git/01-git-github-fundamentals/) | ✅ 4 sections, fully tested |
+
+### [SQL](sql/)
+
+| # | Course | Status |
+|---|--------|--------|
+| 01 | [Up and Running with SQL and Databases](sql/01-up-and-running-with-sql/) | ✅ PostgreSQL, psql, databases and tables |
+| 02 | [SQL and Databases Fundamentals](sql/02-sql-fundamentals/) | ✅ queries, filtering, aggregates, joins |
+| 03 | [Advanced Databases](sql/03-advanced-databases/) | ✅ 10 sections: indexes, transactions, window functions, triggers, security |
+| 04 | [Database Design & Implementation](sql/04-database-design/) | ✅ modelling, normalization, design exercises |
 
 More courses (Git for Professionals, CI/CD, AWS) will be added with the same format.
 
@@ -140,7 +154,7 @@ More courses (Git for Professionals, CI/CD, AWS) will be added with the same for
 ## Docker course without the Academy
 
 The Docker course also ships a standalone launcher (`./course.sh` / `course.cmd`) if
-you'd rather type the commands yourself - see its [README](06-docker/).
+you'd rather type the commands yourself - see its [README](devops/05-docker/).
 
 ## Repository layout
 
@@ -150,14 +164,18 @@ devops-exercises/
 ├── academy/                  # the Academy's source (Go + Charm), built in Docker
 ├── .devcontainer/            # Codespaces config (Docker-in-Docker, Academy pre-built)
 ├── my-journey/               # your notes & progress.json (commit to your fork)
-├── 01-linux-fundamentals/    # a course (one folder per course)
-│   ├── Dockerfile            # the shared Ubuntu exercise image
-│   └── NN-topic/             # each section: README, seed.sh, verify.sh, solutions.md
-├── 02-vim/
-├── ...
-├── 06-docker/                # host-Docker course: runner.sh + course.sh launchers
-└── 07-10 SQL courses         # Ubuntu + PostgreSQL sandbox (Dockerfile per course)
+├── devops/                   # a track (one folder per track)
+│   ├── 01-linux-fundamentals/  # a course
+│   │   ├── Dockerfile          # the shared Ubuntu exercise image
+│   │   └── NN-topic/           # each section: README, seed.sh, verify.sh, solutions.md
+│   ├── ...
+│   └── 05-docker/              # host-Docker course: runner.sh + course.sh launchers
+├── git/
+│   └── 01-git-github-fundamentals/
+└── sql/                      # Ubuntu + PostgreSQL sandboxes that open in psql
+    ├── 01-up-and-running-with-sql/
+    └── ...
 ```
 
-Adding a course or section is just adding a folder in this shape - the Academy
+Adding a track, course or section is just adding a folder in this shape - the Academy
 discovers it on the next launch.

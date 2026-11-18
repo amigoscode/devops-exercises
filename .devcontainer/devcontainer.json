@@ -5,7 +5,7 @@
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers/features/common-utils:2": {}
   },
-  "postCreateCommand": "./academy.sh --list >/dev/null; docker build -q 01-linux-fundamentals >/dev/null || true",
+  "postCreateCommand": "./academy.sh --list >/dev/null; docker build -q devops/01-linux-fundamentals >/dev/null || true",
   "postAttachCommand": "echo; echo \"  Amigoscode Academy - run:  ./academy.sh\"; echo",
   "customizations": {
     "vscode": {

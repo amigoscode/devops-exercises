@@ -12,7 +12,7 @@ tools to diagnose and fix it.
 ## How to use this set
 
 ```bash
-# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+# from the devops/05-docker/ folder or the repo root   (on Windows: course.cmd ...)
 ./course.sh start  05-debugging
 #   ...run the docker commands below in this terminal, then:
 ./course.sh verify 05-debugging
@@ -23,8 +23,8 @@ tools to diagnose and fix it.
 ```
 
 The seed leaves a misbehaving container called `buggy` running. Save your findings
-into files under `06-docker/sandbox/05-debugging/` (run the commands from the
-`06-docker/` folder so the relative paths line up - the Academy's shell starts there).
+into files under `devops/05-docker/sandbox/05-debugging/` (run the commands from the
+`devops/05-docker/` folder so the relative paths line up - the Academy's shell starts there).
 
 ---
 

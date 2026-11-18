@@ -11,7 +11,7 @@ an image. This is the single most important Docker skill for a DevOps engineer.
 ## How to use this set
 
 ```bash
-# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+# from the devops/05-docker/ folder or the repo root   (on Windows: course.cmd ...)
 ./course.sh start  04-building-images
 #   ...write Dockerfiles and run docker build in this terminal, then:
 ./course.sh verify 04-building-images
@@ -21,7 +21,7 @@ an image. This is the single most important Docker skill for a DevOps engineer.
 #   ../course.sh verify
 ```
 
-The seed gives you two starter apps under `06-docker/sandbox/04-building-images/`:
+The seed gives you two starter apps under `devops/05-docker/sandbox/04-building-images/`:
 `site/` (a static page) and `clock/` (a tiny Python service). You add the Dockerfiles.
 
 ---

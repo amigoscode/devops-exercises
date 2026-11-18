@@ -132,7 +132,7 @@ check                 # the self-check below, run against your stack
 ```
 
 Edit the files with any editor on your machine - they are in
-`06-docker/sandbox/09-capstone-smart-lead/smart-lead` inside this repo. Commit and push
+`devops/05-docker/sandbox/09-capstone-smart-lead/smart-lead` inside this repo. Commit and push
 from your own terminal, where your GitHub login lives.
 
 The app needs host port **8080**. If an earlier section still holds it (Containers'

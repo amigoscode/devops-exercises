@@ -93,7 +93,7 @@ func (m *model) viewBrowse() string {
 	logo := strings.Split(Logo(), "\n")
 	top = append(top, "", spread(margin+logo[0], m.dockerBadge()+margin, W))
 	top = append(top, margin+logo[1]+"  "+sBold.Render("Academy"))
-	top = append(top, margin+sMuted.Render("Hands-on, auto-graded exercises · Linux, Git, Docker and SQL, in real sandboxes"), "")
+	top = append(top, margin+sMuted.Render("Hands-on, auto-graded exercises · DevOps, Git and SQL, in real sandboxes"), "")
 
 	// progress + continue
 	done, total := 0, 0
@@ -143,10 +143,10 @@ func (m *model) viewBrowse() string {
 		cw := min(max(cardW/3+4, need), cardW*2/5+4)
 		sw := cardW - cw - 1
 		cols = lipgloss.JoinHorizontal(lipgloss.Top,
-			box(m.courseList(cw-4), "Courses", cw, colH, m.col == 0), " ",
+			box(m.courseList(cw-4, colH-2), "Courses", cw, colH, m.col == 0), " ",
 			box(m.sectionList(c, sw-4, colH-2), c.Title, sw, colH, m.col == 1))
 	} else if m.col == 0 {
-		cols = box(m.courseList(cardW-4), "Courses", cardW, colH, true)
+		cols = box(m.courseList(cardW-4, colH-2), "Courses", cardW, colH, true)
 	} else {
 		cols = box(m.sectionList(c, cardW-4, colH-2), c.Title, cardW, colH, true)
 	}
@@ -165,14 +165,31 @@ func (m *model) viewBrowse() string {
 	return stick(body, m.statusLine(idle)+"\n"+m.footer(hints...), H)
 }
 
-func (m *model) courseList(w int) string {
+// courseList groups the courses under their track (DevOps, Git, SQL) and scrolls
+// to keep the highlighted course in view on short terminals.
+func (m *model) courseList(w, h int) string {
 	var rows []string
+	selRow := 0
 	for i, c := range m.courses {
+		if i == 0 || c.Track != m.courses[i-1].Track {
+			if i > 0 {
+				rows = append(rows, "")
+			}
+			td, tt := 0, 0
+			for _, x := range m.courses {
+				if x.Track == c.Track {
+					d, t := m.courseCounts(x)
+					td, tt = td+d, tt+t
+				}
+			}
+			rows = append(rows, spread(sBrand.Render(strings.ToUpper(c.TrackTitle)), sFaint.Render(fmt.Sprintf("%d/%d", td, tt)), w))
+		}
 		d, t := m.courseCounts(c)
 		sel := i == m.courseIx
 		marker, num, title := "  ", sFaint.Render(c.Num), sText.Render(c.Title)
 		if sel {
 			marker, num, title = sBrand.Render("▶ "), sBrand.Render(c.Num), sBold.Render(c.Title)
+			selRow = len(rows)
 		}
 		count := sMuted.Render(fmt.Sprintf("%d/%d", d, t))
 		if d == t {
@@ -180,6 +197,10 @@ func (m *model) courseList(w int) string {
 		}
 		left := marker + num + "  " + title
 		rows = append(rows, spread(truncateANSI(left, w-lipgloss.Width(count)-2), count, w))
+	}
+	if h > 0 && len(rows) > h {
+		start := min(max(selRow-h/2, 0), len(rows)-h)
+		rows = rows[start : start+h]
 	}
 	return strings.Join(rows, "\n")
 }

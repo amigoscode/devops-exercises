@@ -21,7 +21,7 @@ image, and compose the stack.
 ## How to use this set
 
 ```bash
-# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+# from the devops/05-docker/ folder or the repo root   (on Windows: course.cmd ...)
 ./course.sh start  07-capstone
 #   ...write the Dockerfile + compose file, bring the stack up, then:
 ./course.sh verify 07-capstone
@@ -31,7 +31,7 @@ image, and compose the stack.
 #   ../course.sh verify
 ```
 
-The seed drops a full-stack app under `06-docker/sandbox/07-capstone/`:
+The seed drops a full-stack app under `devops/05-docker/sandbox/07-capstone/`:
 
 ```
 backend/   app.py, requirements.txt        <- you add the Dockerfile

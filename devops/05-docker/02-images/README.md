@@ -11,7 +11,7 @@ release goes wrong.
 ## How to use this set
 
 ```bash
-# from the 06-docker/ folder or the repo root   (on Windows: course.cmd ...)
+# from the devops/05-docker/ folder or the repo root   (on Windows: course.cmd ...)
 ./course.sh start  02-images
 #   ...run the docker commands below in this terminal, then:
 ./course.sh verify 02-images
