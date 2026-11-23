@@ -1,0 +1,2 @@
+Hello from the Amigoscode AWS Essentials course.
+This is version 1.

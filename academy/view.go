@@ -243,6 +243,9 @@ func (m *model) sectionList(c *Course, w, h int) string {
 	if c.Kind == KindHost {
 		env = sCyan.Render("◆ Your own Docker")
 	}
+	if c.AWS {
+		env = sCyan.Render("◆ Your own AWS account")
+	}
 	graded, drills := 0, 0
 	for _, t := range s.Tasks {
 		if t.Kind == "drill" {
@@ -506,7 +509,11 @@ func (m *model) questionDetail(q Task, w int) string {
 		if sp.HasDrill(q.ID) {
 			out = append(out, " "+sViolet.Render("◆ Practised")+sMuted.Render(" - nice. Press space to untick."))
 		} else {
-			out = append(out, " "+sFaint.Render("◇ Drill - nothing to grade. Practise it in your sandbox, then press space to tick it off."))
+			where := "in your sandbox"
+			if s.Course.AWS {
+				where = "in the AWS console"
+			}
+			out = append(out, " "+sFaint.Render("◇ Drill - nothing to grade. Practise it "+where+", then press space to tick it off."))
 		}
 	} else if c, ok := m.check(q.ID); ok {
 		if c.OK {
@@ -515,7 +522,11 @@ func (m *model) questionDetail(q Task, w int) string {
 			out = append(out, " "+sRed.Render("✘ Not done yet"), indent(wrap.Foreground(cViolet1).Render(c.Text), "   "))
 		}
 	} else {
-		out = append(out, " "+sFaint.Render("○ Not checked yet - do it in your sandbox, then type exit (or press v)."))
+		if s.Course.AWS {
+			out = append(out, " "+sFaint.Render("○ Not checked yet - do it in the AWS console, then type check (or press v)."))
+		} else {
+			out = append(out, " "+sFaint.Render("○ Not checked yet - do it in your sandbox, then type exit (or press v)."))
+		}
 	}
 
 	for _, t := range s.Tiers {
@@ -541,6 +552,9 @@ func (m *model) shellBanner(s *Section) string {
 	}
 	if s.Course.Kind == KindHost {
 		where = "a terminal wired to your real Docker"
+	}
+	if s.Course.AWS {
+		where = "a terminal for checking your AWS account. Build in the AWS console, type check here (sign in once with ./course.sh login)"
 	}
 	b = append(b, margin+sMuted.Render("You are in "+where+"."), "")
 	if len(s.Tasks) > 0 {

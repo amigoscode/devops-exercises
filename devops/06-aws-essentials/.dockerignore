@@ -1,0 +1,3 @@
+# The runner image installs its tools from apk and copies nothing from here,
+# so keep the build context empty and the build instant.
+*

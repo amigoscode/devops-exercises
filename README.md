@@ -1,9 +1,10 @@
 # Amigoscode Academy - Hands-On Exercises
 
 Hands-on, **auto-graded** exercises for Amigoscode courses: Linux, Vim, shell
-scripting, Git, Docker and SQL. Every exercise runs inside a disposable container,
+scripting, Git, Docker, AWS and SQL. Every exercise runs inside a disposable container,
 so destructive commands are safe, the environment is identical for everyone, and a
-script checks your work with instant ✅ / ❌ feedback.
+script checks your work with instant ✅ / ❌ feedback. (AWS Essentials is the one
+exception: you build in your own AWS account, and the checker reads it.)
 
 The goal: take you from beginner to the practical, day-to-day skills a backend or
 **DevOps engineer** relies on.

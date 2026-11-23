@@ -6,7 +6,8 @@ package main
 //   track/                       a group of courses: devops/, git/, sql/
 //     README.md                  "# DevOps" - the name shown in the course list
 //     NN-course/                 a course (Dockerfile => Ubuntu sandbox, runner.sh => host Docker,
-//                                start-postgres.sh => the sandbox opens in psql)
+//                                start-postgres.sh => the sandbox opens in psql,
+//                                runner.sh + lib/aws.sh => checks the student's AWS account)
 //       README.md                "# Title - Hands-On Exercises"
 //       NN-section/
 //         README.md              tiers ("## Tier 1 - ...") and tasks ("**1.1 (graded)** ...")
@@ -24,7 +25,7 @@ type Kind int
 
 const (
 	KindSandbox Kind = iota // each section runs in its own Ubuntu container
-	KindHost                // Docker course: the student drives their own Docker daemon
+	KindHost                // Docker and AWS courses: the student drives their own Docker / AWS account
 )
 
 type Task struct {
@@ -74,6 +75,7 @@ type Course struct {
 	Blurb      string
 	Kind       Kind
 	PSQL       bool // SQL course: the sandbox opens in psql, not bash
+	AWS        bool // AWS course: the work is done in the AWS console, the runner checks the account
 	Sections   []*Section
 }
 
@@ -134,6 +136,7 @@ func LoadCatalog(repo string) ([]*Course, error) {
 			switch {
 			case exists(filepath.Join(c.Dir, "runner.sh")):
 				c.Kind = KindHost
+				c.AWS = exists(filepath.Join(c.Dir, "lib", "aws.sh"))
 			case exists(filepath.Join(c.Dir, "Dockerfile")):
 				c.Kind = KindSandbox
 				c.PSQL = exists(filepath.Join(c.Dir, "start-postgres.sh"))
@@ -171,6 +174,7 @@ var taglines = map[string]string{
 	"devops/04-shell-scripting":         "Automate the boring stuff. Write Bash scripts with conditions, loops, functions and proper error handling.",
 	"git/01-git-github-fundamentals":    "Version control from zero: commits, history, branches and remotes - then push a project end to end.",
 	"devops/05-docker":                  "Package, run and debug real containers on your own Docker, then ship multi-service apps with Compose.",
+	"devops/06-aws-essentials":          "Build real infrastructure in your own AWS account - EC2, IAM, S3, VPC, load balancers, RDS - checked live.",
 	"sql/01-up-and-running-with-sql":    "Your first steps with PostgreSQL: the server, psql, databases and tables - on a real Postgres of your own.",
 	"sql/02-sql-fundamentals":           "Write real SQL: query, filter, group, change data and join tables, graded against the right answer.",
 	"sql/03-advanced-databases":         "What separates juniors from seniors: indexes, transactions, window functions, triggers, roles and security.",

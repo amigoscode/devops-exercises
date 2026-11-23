@@ -8,7 +8,7 @@ package main
 // natively, or inside its own container on Windows - because the Docker client
 // streams the files and no host path has to line up.
 //
-// Host courses (Docker): start/verify/reset/stop are delegated to the course's
+// Host courses (Docker, AWS): start/verify/reset/stop are delegated to the course's
 // own runner.sh, so `./course.sh` and the academy stay interchangeable.
 
 import (
@@ -174,7 +174,11 @@ func (o *Ops) Prepare(s *Section) error {
 		if exists(o.hostSandbox(s)) {
 			return nil
 		}
-		o.say("Setting up the scenario on your Docker daemon (pulling images)")
+		msg := "Setting up the scenario on your Docker daemon (pulling images)"
+		if c.AWS {
+			msg = "Getting the AWS checker ready"
+		}
+		o.say(msg)
 		if out, err := o.runner(c, "start", s.Slug); err != nil {
 			return fmt.Errorf("seeding failed:\n%s", tail(out, 15))
 		}
@@ -355,7 +359,11 @@ func (o *Ops) Verify(s *Section) (string, error) {
 func (o *Ops) Reset(s *Section) error {
 	c := s.Course
 	if c.Kind == KindHost {
-		o.say("Removing this section's containers and re-seeding")
+		msg := "Removing this section's containers and re-seeding"
+		if c.AWS {
+			msg = "Deleting what this section created in your AWS account and setting it up again"
+		}
+		o.say(msg)
 		if out, err := o.runner(c, "reset", s.Slug); err != nil {
 			return fmt.Errorf("reset failed:\n%s", tail(out, 15))
 		}

@@ -1,7 +1,7 @@
 # DevOps
 
 The day-to-day skills of a DevOps engineer, from your first terminal command to
-shipping multi-service apps in containers. Take the courses in order.
+shipping multi-service apps in containers and running them on AWS. Take the courses in order.
 
 | # | Course | What you practise |
 |---|--------|-------------------|
@@ -10,6 +10,7 @@ shipping multi-service apps in containers. Take the courses in order.
 | 03 | [Linux for Professionals](03-linux-for-professionals/) | pipes, environment variables, system admin, networking, SSH |
 | 04 | [Shell Scripting](04-shell-scripting/) | Bash scripts with conditions, loops, functions and error handling |
 | 05 | [Docker for Professionals](05-docker/) | containers, images, volumes, networks, Compose and 3 capstones |
+| 06 | [AWS Essentials](06-aws-essentials/) | your own AWS account: EC2, IAM, S3, VPC, load balancing, RDS and monitoring, built in the console |
 
 Open any of them in the Academy: run `./academy.sh` (Windows: `academy.cmd`) from the
 repo root.
